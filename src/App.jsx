@@ -19,6 +19,7 @@ function App() {
 
   const getDefaultRoute = () => {
     if (!currentUser) return '/login';
+    if (!userRole) return '/unauthorized'; // Redirect to unauthorized if role is missing
     switch (userRole) {
       case 'admin':
         return '/admin';
@@ -36,9 +37,9 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={currentUser ? <Navigate to={getDefaultRoute()} replace /> : <Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/login" element={currentUser ? <Navigate to={getDefaultRoute()} replace /> : <Login />} />
+        <Route path="/login" element={currentUser && userRole ? <Navigate to={getDefaultRoute()} replace /> : <Login />} />
         <Route path="/register" element={currentUser ? <Navigate to={getDefaultRoute()} replace /> : <Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 

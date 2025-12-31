@@ -2,13 +2,26 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, addDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
-import { FiFile, FiDownload, FiCalendar, FiBookOpen, FiCheckCircle, FiXCircle, FiUpload, FiClock } from 'react-icons/fi';
+import { FiFile, FiDownload, FiCalendar, FiBookOpen, FiCheckCircle, FiXCircle, FiUpload, FiClock, FiBell, FiClipboard, FiUsers, FiBarChart } from 'react-icons/fi';
 import { format } from 'date-fns';
 import CircularProgress from '../components/CircularProgress';
 import ProgressBar from '../components/ProgressBar';
 
 const StudentDashboard = () => {
   const { currentUser } = useAuth();
+
+  // Safe date formatting utility
+  const safeFormat = (date, formatStr) => {
+    try {
+      if (!date) return 'N/A';
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'N/A';
+      return format(d, formatStr);
+    } catch (e) {
+      console.error('Date formatting error:', e);
+      return 'N/A';
+    }
+  };
   const [activeTab, setActiveTab] = useState('overview');
   const [assignments, setAssignments] = useState([]);
   const [attendance, setAttendance] = useState([]);
@@ -212,97 +225,113 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="container">
-      <div className="card">
+    <div className="container page-enter">
+      <div className="card animate-fade-in-up">
         <div className="card-header">
-          <h2 className="card-title">Student Dashboard</h2>
+          <div>
+            <h2 className="card-title welcome-text">Student Dashboard</h2>
+            <p className="welcome-subtitle" style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+              Track your academic journey, assignments, and school updates in one place.
+            </p>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--border-color)' }}>
-          <button
-            className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('overview')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Overview
-          </button>
-          <button
-            className={`btn ${activeTab === 'assignments' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('assignments')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Assignments
-          </button>
-          <button
-            className={`btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('attendance')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Attendance
-          </button>
-          <button
-            className={`btn ${activeTab === 'marks' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('marks')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Marks & Results
-          </button>
-          <button
-            className={`btn ${activeTab === 'timetable' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('timetable')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Timetable
-          </button>
-          <button
-            className={`btn ${activeTab === 'announcements' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('announcements')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Announcements
-          </button>
+        <div className="tabs-container-modern">
+          <div className="tabs-list-modern">
+            <button
+              className={`tab-item-modern ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <FiBarChart /> Overview
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'assignments' ? 'active' : ''}`}
+              onClick={() => setActiveTab('assignments')}
+            >
+              <FiClipboard /> Assignments
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'attendance' ? 'active' : ''}`}
+              onClick={() => setActiveTab('attendance')}
+            >
+              <FiCheckCircle /> Attendance
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'marks' ? 'active' : ''}`}
+              onClick={() => setActiveTab('marks')}
+            >
+              <FiUpload /> Marks
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'timetable' ? 'active' : ''}`}
+              onClick={() => setActiveTab('timetable')}
+            >
+              <FiCalendar /> Timetable
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'announcements' ? 'active' : ''}`}
+              onClick={() => setActiveTab('announcements')}
+            >
+              <FiBell /> Announcements
+            </button>
+          </div>
         </div>
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="dashboard-overview animate-fade-in">
+          <div className="tab-content-card" style={{ padding: '2rem' }}>
+            <div className="section-header-modern">
+              <h3><FiBookOpen className="icon-glow" /> Academic Overview</h3>
+            </div>
             <div className="stats-grid">
-              <div className="stat-card stagger-item">
-                <h3>Attendance</h3>
-                <div className="stat-value">
+              <div className="stat-card hover-scale" style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1.25rem', padding: '1.5rem' }}>
+                <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', fontWeight: 600 }}>Attendance</h4>
+                <div className="stat-value" style={{ display: 'flex', justifyContent: 'center' }}>
                   <CircularProgress
                     percentage={parseFloat(calculateAttendancePercentage())}
                     color="#10b981"
                   />
                 </div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem', textAlign: 'center' }}>
-                  {attendance.filter(a => a.present).length} / {attendance.length} days
-                </p>
+                <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                  <span className="status-indicator success">
+                    {attendance.filter(a => a.present).length} / {attendance.length} Days Present
+                  </span>
+                </div>
               </div>
-              <div className="stat-card stagger-item">
-                <h3>Overall Performance</h3>
-                <div className="stat-value">{calculateOverallPercentage()}%</div>
+              <div className="stat-card hover-scale" style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1.25rem', padding: '1.5rem' }}>
+                <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem', fontWeight: 600 }}>Overall Performance</h4>
+                <div className="stat-value" style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--primary-dark)', marginBottom: '1rem' }}>{calculateOverallPercentage()}%</div>
                 <ProgressBar
                   percentage={parseFloat(calculateOverallPercentage())}
                   color="#2563eb"
                 />
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '1rem', fontWeight: 500 }}>
                   Based on {marks.length} exams
                 </p>
               </div>
-              <div className="stat-card stagger-item">
-                <h3>Assignments</h3>
-                <div className="stat-value">{assignments.length}</div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Total assignments
+              <div className="stat-card hover-scale" style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1.25rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', fontWeight: 600 }}>Assignments</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div className="stat-value" style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--primary-color)' }}>{assignments.length}</div>
+                  <div className="icon-circle" style={{ background: 'var(--bg-color)', color: 'var(--primary-color)' }}>
+                    <FiClipboard size={32} />
+                  </div>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
+                  Active coursework
                 </p>
               </div>
-              <div className="stat-card stagger-item">
-                <h3>Announcements</h3>
-                <div className="stat-value">{announcements.length}</div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Recent updates
+              <div className="stat-card hover-scale" style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1.25rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', fontWeight: 600 }}>Latest Updates</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div className="stat-value" style={{ fontSize: '3rem', fontWeight: 800, color: '#f59e0b' }}>{announcements.length}</div>
+                  <div className="icon-circle" style={{ background: '#fffbeb', color: '#d97706' }}>
+                    <FiBell size={32} />
+                  </div>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
+                  New announcements
                 </p>
               </div>
             </div>
@@ -311,23 +340,25 @@ const StudentDashboard = () => {
 
         {/* Assignments Tab */}
         {activeTab === 'assignments' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>My Assignments</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiClipboard className="icon-glow" /> My Assignments</h3>
+            </div>
             {assignments.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                No assignments available
-              </p>
+              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                <FiClipboard size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No assignments available at the moment.</p>
+              </div>
             ) : (
-              <div className="table-container">
-                <table className="table">
+              <div className="modern-table-container" style={{ marginTop: 0 }}>
+                <table className="modern-table">
                   <thead>
                     <tr>
-                      <th>Title</th>
-                      <th>Description</th>
+                      <th>Assignment Title</th>
                       <th>Due Date</th>
-                      <th>File</th>
+                      <th>Class File</th>
                       <th>Status</th>
-                      <th>Submit</th>
+                      <th>Submission</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -338,55 +369,58 @@ const StudentDashboard = () => {
                       const isSubmitted = !!submission;
                       return (
                         <tr key={assignment.id} className="stagger-item">
-                          <td>{assignment.title}</td>
-                          <td>{assignment.description || 'N/A'}</td>
                           <td>
-                            {assignment.dueDate ? (
-                              <span style={{ color: isOverdue ? 'var(--danger-color)' : 'inherit' }}>
-                                {format(new Date(assignment.dueDate), 'MMM dd, yyyy')}
-                              </span>
-                            ) : 'N/A'}
+                            <div style={{ fontWeight: 700, color: 'var(--primary-dark)' }}>{assignment.title}</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{assignment.description || 'No description provided'}</div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isOverdue ? 'var(--danger-color)' : 'var(--text-secondary)', fontWeight: 500 }}>
+                              <FiCalendar size={14} />
+                              {assignment.dueDate ? safeFormat(assignment.dueDate, 'MMM dd, yyyy') : 'No date'}
+                            </div>
                           </td>
                           <td>
                             {assignment.fileUrl ? (
-                              assignment.isBase64 ? (
-                                <a
-                                  href={assignment.fileUrl}
-                                  download={assignment.fileName || 'assignment-file'}
-                                  className="btn btn-primary download-btn"
-                                  style={{ padding: '0.5rem', textDecoration: 'none' }}
-                                >
-                                  <FiDownload size={16} />
-                                </a>
-                              ) : (
-                                <a
-                                  href={assignment.fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="btn btn-primary download-btn"
-                                  style={{ padding: '0.5rem', textDecoration: 'none' }}
-                                >
-                                  <FiDownload size={16} />
-                                </a>
-                              )
-                            ) : 'No file'}
-                          </td>
-                          <td>
-                            {isOverdue ? (
-                              <span className="badge badge-danger" style={{ display: 'inline-block' }}>Overdue</span>
+                              <a
+                                href={assignment.fileUrl}
+                                download={assignment.fileName || 'assignment-file'}
+                                target={assignment.isBase64 ? "_self" : "_blank"}
+                                rel="noopener noreferrer"
+                                className="file-link-modern"
+                              >
+                                <FiDownload size={16} />
+                                <span>{assignment.fileName ? (assignment.fileName.length > 15 ? assignment.fileName.substring(0, 12) + '...' : assignment.fileName) : 'Download'}</span>
+                              </a>
                             ) : (
-                              <span className="badge badge-success" style={{ display: 'inline-block' }}>Active</span>
+                              <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.9rem' }}>No file</span>
                             )}
                           </td>
                           <td>
                             {isSubmitted ? (
-                              <span className="badge badge-success" style={{ display: 'inline-block' }}>
-                                <FiCheckCircle size={14} style={{ marginRight: '0.25rem' }} />
-                                Submitted
+                              <span className="status-indicator success">
+                                <FiCheckCircle size={14} /> Submitted
+                              </span>
+                            ) : isOverdue ? (
+                              <span className="status-indicator danger">
+                                <FiClock size={14} /> Overdue
                               </span>
                             ) : (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
-                                <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <span className="status-indicator info">
+                                <FiClock size={14} /> Active
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            {isSubmitted ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--success-color)', fontWeight: 600 }}>Completed</span>
+                                <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                                  {submission.submittedAt ? safeFormat(submission.submittedAt, 'MMM dd, HH:mm') : 'N/A'}
+                                </small>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-start' }}>
+                                <label className="teacher-action-btn-modern btn-secondary" style={{ cursor: 'pointer', margin: 0 }}>
                                   <FiUpload size={16} />
                                   <input
                                     type="file"
@@ -394,21 +428,23 @@ const StudentDashboard = () => {
                                     onChange={(e) => handleFileSelect(assignment.id, e.target.files[0])}
                                     accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
                                   />
-                                  <span style={{ fontSize: '0.875rem' }}>Choose File</span>
+                                  <span>{selectedFile ? 'Change File' : 'Select File'}</span>
                                 </label>
                                 {selectedFile && (
-                                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                    {selectedFile.name}
-                                  </span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--primary-color)', fontWeight: 600, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {selectedFile.name}
+                                    </span>
+                                    <button
+                                      className="teacher-action-btn-modern btn-primary"
+                                      onClick={() => handleSubmitAssignment(assignment.id)}
+                                      disabled={uploadingAssignmentId === assignment.id}
+                                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                                    >
+                                      {uploadingAssignmentId === assignment.id ? '...' : 'Upload'}
+                                    </button>
+                                  </div>
                                 )}
-                                <button
-                                  className="btn btn-primary"
-                                  onClick={() => handleSubmitAssignment(assignment.id)}
-                                  disabled={!selectedFile || uploadingAssignmentId === assignment.id}
-                                  style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-                                >
-                                  {uploadingAssignmentId === assignment.id ? 'Uploading...' : 'Submit'}
-                                </button>
                               </div>
                             )}
                           </td>
@@ -424,40 +460,51 @@ const StudentDashboard = () => {
 
         {/* Attendance Tab */}
         {activeTab === 'attendance' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>My Attendance</h3>
-            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-color)', borderRadius: '0.5rem' }}>
-              <strong>Overall Attendance: {calculateAttendancePercentage()}%</strong>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiCalendar className="icon-glow" /> My Attendance History</h3>
+            </div>
+            <div style={{ marginBottom: '1.5rem', padding: '1.25rem', background: 'var(--bg-color)', borderRadius: '1rem', border: '1px solid var(--border-color)', display: 'inline-flex', alignItems: 'center', gap: '1rem' }}>
+              <FiCheckCircle size={20} style={{ color: 'var(--primary-color)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Overall Attendance</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-dark)' }}>{calculateAttendancePercentage()}%</span>
+              </div>
             </div>
             {attendance.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                No attendance records found
-              </p>
+              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                <FiXCircle size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No attendance records found yet.</p>
+              </div>
             ) : (
-              <div className="table-container">
-                <table className="table">
+              <div className="modern-table-container" style={{ marginTop: 0 }}>
+                <table className="modern-table">
                   <thead>
                     <tr>
                       <th>Date</th>
-                      <th>Status</th>
+                      <th>Attendance Status</th>
+                      <th>Subject/Class</th>
                     </tr>
                   </thead>
                   <tbody>
                     {attendance.map(record => (
                       <tr key={record.id}>
-                        <td>{format(new Date(record.date), 'MMM dd, yyyy')}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          {record.date ? safeFormat(record.date, 'MMMM dd, yyyy') : 'N/A'}
+                        </td>
                         <td>
                           {record.present ? (
-                            <span className="badge badge-success">
-                              <FiCheckCircle size={14} style={{ marginRight: '0.25rem' }} />
-                              Present
+                            <span className="status-indicator success">
+                              <FiCheckCircle size={14} /> Present
                             </span>
                           ) : (
-                            <span className="badge badge-danger">
-                              <FiXCircle size={14} style={{ marginRight: '0.25rem' }} />
-                              Absent
+                            <span className="status-indicator danger">
+                              <FiXCircle size={14} /> Absent
                             </span>
                           )}
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Regular Session</span>
                         </td>
                       </tr>
                     ))}
@@ -470,18 +517,19 @@ const StudentDashboard = () => {
 
         {/* Marks Tab */}
         {activeTab === 'marks' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>My Marks & Results</h3>
-            <div className="table-container">
-              <table className="table">
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiCheckCircle className="icon-glow" /> Marks & Academic Results</h3>
+            </div>
+            <div className="modern-table-container" style={{ marginTop: 0 }}>
+              <table className="modern-table">
                 <thead>
                   <tr>
                     <th>Subject</th>
-                    <th>Exam Type</th>
-                    <th>Marks Obtained</th>
-                    <th>Total Marks</th>
+                    <th>Assessment Type</th>
+                    <th>Score / Total</th>
                     <th>Percentage</th>
-                    <th>Grade</th>
+                    <th>Grading</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -495,16 +543,23 @@ const StudentDashboard = () => {
                       if (perc >= 50) return 'D';
                       return 'F';
                     };
+                    const grade = getGrade(percentage);
                     return (
                       <tr key={mark.id}>
-                        <td>{mark.subject}</td>
-                        <td>{mark.examType}</td>
-                        <td>{mark.marks}</td>
-                        <td>{mark.totalMarks}</td>
-                        <td>{percentage}%</td>
+                        <td style={{ fontWeight: 700, color: 'var(--primary-dark)' }}>{mark.subject}</td>
                         <td>
-                          <span className={`badge ${percentage >= 50 ? 'badge-success' : 'badge-danger'}`}>
-                            {getGrade(percentage)}
+                          <span className="status-indicator info" style={{ padding: '0.35rem 0.75rem' }}>{mark.examType}</span>
+                        </td>
+                        <td style={{ fontWeight: 600 }}>{mark.marks} <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>/ {mark.totalMarks}</span></td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{percentage}%</span>
+                            <ProgressBar percentage={parseFloat(percentage)} color={percentage >= 50 ? 'var(--primary-color)' : 'var(--danger-color)'} />
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`status-indicator ${percentage >= 50 ? 'success' : 'danger'}`} style={{ minWidth: '45px', justifyContent: 'center' }}>
+                            {grade}
                           </span>
                         </td>
                       </tr>
@@ -518,39 +573,48 @@ const StudentDashboard = () => {
 
         {/* Timetable Tab */}
         {activeTab === 'timetable' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>Class Timetable</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiCalendar className="icon-glow" /> Class Timetable</h3>
+            </div>
             {timetable ? (
-              <div className="timetable-container">
-                <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-                  Class: <strong>{timetable.className}</strong>
+              <div className="timetable-container" style={{ marginTop: '1rem' }}>
+                <div style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)', padding: '1rem', background: 'var(--bg-color)', borderRadius: '0.75rem', borderLeft: '4px solid var(--primary-color)' }}>
+                  Active Class: <strong style={{ color: 'var(--primary-dark)', fontSize: '1.1rem' }}>{timetable.className}</strong>
                 </div>
-                <div className="timetable-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                <div className="timetable-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
                     const daySchedule = timetable.schedule?.[day] || [];
 
                     return (
-                      <div key={day} className="card" style={{ padding: '1rem', background: 'var(--bg-secondary)' }}>
-                        <h5 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+                      <div key={day} className="card" style={{ padding: '1.5rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1rem', boxShadow: 'none' }}>
+                        <h5 style={{ borderBottom: '2px solid var(--primary-color)', paddingBottom: '0.75rem', marginBottom: '1.25rem', color: 'var(--primary-dark)', fontWeight: 800, fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           {day}
                         </h5>
                         {daySchedule.length === 0 ? (
-                          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>No classes</p>
+                          <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.02)', borderRadius: '0.5rem', border: '1px dashed var(--border-color)' }}>
+                            <p style={{ margin: 0, fontSize: '0.85rem', fontStyle: 'italic' }}>No classes scheduled</p>
+                          </div>
                         ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                             {daySchedule.map(entry => (
                               <div key={entry.id} style={{
-                                background: 'var(--bg-color)',
-                                padding: '0.75rem',
-                                borderRadius: '0.5rem',
-                                borderLeft: '3px solid var(--primary-color)'
-                              }}>
-                                <div style={{ fontWeight: 'bold' }}>{entry.subject}</div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                  <FiClock size={12} /> {entry.startTime} - {entry.endTime}
+                                background: 'white',
+                                padding: '1rem',
+                                borderRadius: '0.75rem',
+                                borderLeft: '4px solid var(--primary-color)',
+                                boxShadow: 'var(--shadow-sm)',
+                                transition: 'transform 0.2s',
+                              }}
+                                className="stagger-item hover-scale"
+                              >
+                                <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{entry.subject}</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-color)', padding: '0.4rem 0.6rem', borderRadius: '0.4rem', marginBottom: '0.5rem' }}>
+                                  <FiClock size={14} style={{ color: 'var(--primary-color)' }} />
+                                  <span style={{ fontWeight: 600 }}>{entry.startTime} - {entry.endTime}</span>
                                 </div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                  {entry.teacherName}
+                                <div style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', paddingLeft: '0.25rem' }}>
+                                  <FiUsers size={12} /> {entry.teacherName}
                                 </div>
                               </div>
                             ))}
@@ -562,9 +626,10 @@ const StudentDashboard = () => {
                 </div>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                <FiCalendar size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <p>No timetable found. You may not be assigned to a class yet.</p>
+              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                <FiCalendar size={64} style={{ marginBottom: '1.5rem', opacity: 0.2, color: 'var(--primary-color)' }} />
+                <h4 style={{ color: 'var(--primary-dark)', marginBottom: '0.5rem' }}>No Timetable Found</h4>
+                <p>You may not be assigned to a class yet. Please contact administration.</p>
               </div>
             )}
           </div>
@@ -572,23 +637,31 @@ const StudentDashboard = () => {
 
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>Announcements</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiBell className="icon-glow" /> School Announcements</h3>
+            </div>
             {announcements.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                No announcements available
-              </p>
+              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                <FiBell size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No announcements available yet.</p>
+              </div>
             ) : (
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {announcements.map(announcement => (
-                  <div key={announcement.id} className="card" style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ marginBottom: '0.5rem' }}>{announcement.title}</h4>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                  <div key={announcement.id} className="card hover-scale" style={{ padding: '1.5rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1rem', boxShadow: 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                      <h4 style={{ margin: 0, color: 'var(--primary-dark)', fontWeight: 700, fontSize: '1.1rem' }}>{announcement.title}</h4>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'white', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', fontWeight: 600, border: '1px solid var(--border-color)' }}>
+                        {announcement.createdAt ? safeFormat(announcement.createdAt, 'MMM dd, yyyy') : 'N/A'}
+                      </div>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.6 }}>
                       {announcement.message}
                     </p>
-                    <small style={{ color: 'var(--text-secondary)' }}>
-                      {format(new Date(announcement.createdAt), 'MMM dd, yyyy HH:mm')}
-                    </small>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: 600 }}>
+                      <FiClock size={14} /> Posted at {announcement.createdAt ? safeFormat(announcement.createdAt, 'HH:mm') : 'N/A'}
+                    </div>
                   </div>
                 ))}
               </div>

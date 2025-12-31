@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import {
   FiBook,
   FiUsers,
@@ -33,48 +34,51 @@ const Home = () => {
   ];
 
   return (
-    <div className="home-page" style={{ overflowX: 'hidden' }}>
+    <div className="home-page" style={{ overflowX: 'hidden', background: 'var(--bg-color)' }}>
       <Navbar />
 
       {/* Hero Section */}
       <section style={{
-        padding: '8rem 0 6rem',
-        background: 'radial-gradient(circle at top center, rgba(16, 185, 129, 0.1) 0%, transparent 60%)',
-        textAlign: 'center'
+        padding: '10rem 0 8rem',
+        background: 'radial-gradient(circle at top center, rgba(15, 118, 110, 0.12) 0%, transparent 70%)',
+        textAlign: 'center',
+        position: 'relative'
       }}>
         <div className="container">
-          <div className="fade-in-up">
-            <span className="badge badge-success" style={{ marginBottom: '1.5rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--primary-color)' }}>
-              <FiCheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Smart School Management
+          <div className="animate-fade-in-up">
+            <span className="status-indicator success" style={{ marginBottom: '2rem', padding: '0.6rem 1.25rem', fontSize: '0.9rem' }}>
+              <FiCheckCircle size={16} /> Advanced Institutional Intelligence
             </span>
 
             <h1 className="hero-title" style={{
-              fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-              fontWeight: 800,
-              marginBottom: '1.5rem',
-              lineHeight: 1.1,
-              letterSpacing: '-0.03em'
+              fontSize: 'clamp(3rem, 6vw, 5rem)',
+              fontWeight: 900,
+              marginBottom: '2rem',
+              lineHeight: 1.05,
+              letterSpacing: '-0.04em',
+              color: 'var(--primary-dark)'
             }}>
-              The Future of <br className="hidden-mobile" />
-              <span className="text-gradient">Education Technology</span>
+              Empowering the <br className="hidden-mobile" />
+              <span className="text-gradient" style={{ background: 'var(--gradient-hero)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Modern Academy</span>
             </h1>
 
             <p style={{
-              fontSize: '1.25rem',
+              fontSize: '1.35rem',
               color: 'var(--text-secondary)',
-              maxWidth: '600px',
-              margin: '0 auto 2.5rem',
-              lineHeight: 1.6
+              maxWidth: '700px',
+              margin: '0 auto 3.5rem',
+              lineHeight: 1.7,
+              fontWeight: 500
             }}>
-              Streamline administration, empower teachers, and connect with parents using our comprehensive, free-forever platform.
+              The unified operating system for schools. Experience world-class administration, teaching, and parent engagement in one seamless, high-performance platform.
             </p>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/register" className="btn btn-primary btn-lg">
-                Get Started Now <FiArrowRight />
+            <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/register" className="teacher-action-btn-modern btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
+                Initiate Enrollment <FiArrowRight />
               </Link>
-              <a href="#features" className="btn btn-secondary btn-lg">
-                Learn More
+              <a href="#features" className="teacher-action-btn-modern" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', background: 'white', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
+                Explore Features
               </a>
             </div>
           </div>
@@ -82,39 +86,36 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" style={{ padding: '4rem 0' }}>
+      <section id="features" style={{ padding: '6rem 0', background: 'white' }}>
         <div className="container">
-          <div className="text-center" style={{ marginBottom: '4rem' }}>
-            <h2 style={{ marginBottom: '1rem' }}>Everything you need</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Powerful tools to manage your entire institution.</p>
+          <div className="text-center" style={{ marginBottom: '5rem' }}>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 850, color: 'var(--primary-dark)', marginBottom: '1.25rem' }}>Integrated Infrastructure</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>All the mission-critical tools required to steer your academic institution towards success.</p>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '2rem'
-          }}>
+          <div className="summary-cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
             {features.map((feature, index) => (
-              <div key={index} className="card glass" style={{
-                border: '1px solid rgba(0,0,0,0.05)',
+              <div key={index} className="card hover-scale" style={{
+                padding: '2.5rem',
+                border: '1px solid var(--border-color)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '1rem'
+                gap: '1.5rem',
+                boxShadow: 'none',
+                background: 'var(--bg-color)'
               }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: 'var(--bg-color)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: feature.color
+                <div className="icon-circle" style={{
+                  width: '56px',
+                  height: '56px',
+                  background: 'white',
+                  borderRadius: '1rem',
+                  color: feature.color,
+                  boxShadow: 'var(--shadow-sm)'
                 }}>
                   {feature.icon}
                 </div>
-                <h3>{feature.title}</h3>
-                <p style={{ color: 'var(--text-secondary)' }}>{feature.description}</p>
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary-dark)' }}>{feature.title}</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '1.05rem' }}>{feature.description}</p>
               </div>
             ))}
           </div>
@@ -122,87 +123,32 @@ const Home = () => {
       </section>
 
       {/* Simple Stats/Trust Section */}
-      <section style={{ padding: '4rem 0', background: 'white' }}>
+      <section style={{ padding: '6rem 0', background: 'var(--bg-color)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
         <div className="container">
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '3rem',
+            gap: '4rem',
             textAlign: 'center'
           }}>
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--primary-color)' }}>100%</div>
-              <div style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Secure</div>
+            <div className="animate-fade-in">
+              <div style={{ fontSize: '3.5rem', fontWeight: 900, color: 'var(--primary-color)', letterSpacing: '-0.05em' }}>100%</div>
+              <div style={{ color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.9rem' }}>Military-Grade Security</div>
             </div>
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--accent-color)' }}>24/7</div>
-              <div style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Support</div>
+            <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <div style={{ fontSize: '3.5rem', fontWeight: 900, color: 'var(--accent-color)', letterSpacing: '-0.05em' }}>24/7</div>
+              <div style={{ color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.9rem' }}>Global Support</div>
             </div>
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--secondary-color)' }}>Free</div>
-              <div style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Forever</div>
+            <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div style={{ fontSize: '3.5rem', fontWeight: 900, color: 'var(--secondary-color)', letterSpacing: '-0.05em' }}>FREE</div>
+              <div style={{ color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.9rem' }}>Enterprise Edition</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer style={{
-        padding: '4rem 0 2rem',
-        borderTop: '1px solid var(--border-color)',
-        background: 'var(--card-bg)'
-      }}>
-        <div className="container">
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '2rem',
-            marginBottom: '4rem'
-          }}>
-            <div style={{ maxWidth: '300px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <img src="/logo.jpeg" alt="SmartShala" style={{ height: '32px' }} onError={(e) => { e.target.style.display = 'none'; }} />
-                <span style={{
-                  fontWeight: 700,
-                  fontSize: '1.25rem',
-                  color: 'var(--primary-color)'
-                }}>SmartShala</span>
-              </div>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Empowering education through technology.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
-              <div>
-                <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Platform</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Login</Link>
-                  <Link to="/register" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Register</Link>
-                </div>
-              </div>
-              <div>
-                <h4 style={{ marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Legal</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-secondary)', cursor: 'pointer' }}>Privacy</span>
-                  <span style={{ color: 'var(--text-secondary)', cursor: 'pointer' }}>Terms</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{
-            borderTop: '1px solid var(--border-color)',
-            paddingTop: '2rem',
-            textAlign: 'center',
-            color: 'var(--text-light)',
-            fontSize: '0.875rem'
-          }}>
-            &copy; 2025 SmartShala. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

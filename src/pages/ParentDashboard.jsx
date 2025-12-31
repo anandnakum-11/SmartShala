@@ -2,12 +2,26 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
-import { FiUser, FiCheckCircle, FiXCircle, FiBookOpen } from 'react-icons/fi';
+import { FiUser, FiCheckCircle, FiXCircle, FiBookOpen, FiClock, FiBell, FiBarChart, FiTrendingUp, FiClipboard, FiCalendar, FiCheck } from 'react-icons/fi';
 import { format } from 'date-fns';
 import CircularProgress from '../components/CircularProgress';
+import SummaryCard from '../components/SummaryCard';
 
 const ParentDashboard = () => {
   const { currentUser } = useAuth();
+
+  // Safe date formatting utility
+  const safeFormat = (date, formatStr) => {
+    try {
+      if (!date) return 'N/A';
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'N/A';
+      return format(d, formatStr);
+    } catch (e) {
+      console.error('Date formatting error:', e);
+      return 'N/A';
+    }
+  };
   const [activeTab, setActiveTab] = useState('overview');
   const [student, setStudent] = useState(null);
   const [attendance, setAttendance] = useState([]);
@@ -27,36 +41,36 @@ const ParentDashboard = () => {
       // Get current parent user data using currentUser.uid
       const parentDocRef = doc(db, 'users', currentUser.uid);
       const parentDocSnap = await getDoc(parentDocRef);
-      
+
       if (!parentDocSnap.exists() || parentDocSnap.data().role !== 'parent') {
         setLoading(false);
         return;
       }
-      
+
       const parentData = { id: parentDocSnap.id, ...parentDocSnap.data() };
-      
+
       // Find student linked to this parent by childEmail or childStudentId
       const usersSnapshot = await getDocs(collection(db, 'users'));
       const usersData = usersSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
+
       // Find student by childEmail or childStudentId
       let linkedStudent = null;
       if (parentData.childEmail) {
-        linkedStudent = usersData.find(u => 
+        linkedStudent = usersData.find(u =>
           u.role === 'student' && u.email === parentData.childEmail
         );
       }
-      
+
       // If not found by email, try by student ID
       if (!linkedStudent && parentData.childStudentId) {
-        linkedStudent = usersData.find(u => 
+        linkedStudent = usersData.find(u =>
           u.role === 'student' && u.studentId === parentData.childStudentId
         );
       }
-      
+
       setStudent(linkedStudent);
 
       if (linkedStudent) {
@@ -87,7 +101,7 @@ const ParentDashboard = () => {
         id: doc.id,
         ...doc.data()
       }));
-      setAnnouncements(announcementsData.sort((a, b) => 
+      setAnnouncements(announcementsData.sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
       ));
     } catch (error) {
@@ -128,82 +142,91 @@ const ParentDashboard = () => {
   return (
     <div className="container page-enter">
       <div className="card animate-fade-in-up">
-        <div className="card-header">
+        <div className="section-header-modern" style={{ padding: '1rem 0' }}>
           <div>
-            <h2 className="card-title welcome-text">Parent Dashboard</h2>
-            <p className="welcome-subtitle" style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-              Track your child's academic progress and attendance.
+            <h2 className="welcome-text" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Parent Dashboard</h2>
+            <p className="welcome-subtitle" style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
+              Monitoring Academic Excellence: {student.name || student.email}
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <FiUser size={20} />
-              <span style={{ fontWeight: 500 }}>Viewing: {student.name || student.email}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem', color: 'var(--primary-color)' }}>
+              <div className="icon-circle" style={{ width: '32px', height: '32px', background: 'rgba(15, 118, 110, 0.1)' }}>
+                <FiUser size={16} />
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Active Profile: {student.studentId || student.id?.slice(0, 8)}</span>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--border-color)' }}>
-          <button
-            className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('overview')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Overview
-          </button>
-          <button
-            className={`btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('attendance')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Attendance
-          </button>
-          <button
-            className={`btn ${activeTab === 'marks' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('marks')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Academic Performance
-          </button>
-          <button
-            className={`btn ${activeTab === 'announcements' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('announcements')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Announcements
-          </button>
+        <div className="tabs-container-modern">
+          <div className="tabs-list-modern">
+            <button
+              className={`tab-item-modern ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <FiBarChart /> Overview
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'attendance' ? 'active' : ''}`}
+              onClick={() => setActiveTab('attendance')}
+            >
+              <FiCheckCircle /> Attendance
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'marks' ? 'active' : ''}`}
+              onClick={() => setActiveTab('marks')}
+            >
+              <FiClipboard /> Performance
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'announcements' ? 'active' : ''}`}
+              onClick={() => setActiveTab('announcements')}
+            >
+              <FiBell /> Notices
+            </button>
+          </div>
         </div>
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div>
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h3>Attendance Rate</h3>
-                <div className="stat-value">{calculateAttendancePercentage()}%</div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  {attendance.filter(a => a.present).length} / {attendance.length} days
-                </p>
-              </div>
-              <div className="stat-card">
-                <h3>Overall Performance</h3>
-                <div className="stat-value">{calculateOverallPercentage()}%</div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Based on {marks.length} exams
-                </p>
-              </div>
-              <div className="stat-card">
-                <h3>Total Exams</h3>
-                <div className="stat-value">{marks.length}</div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Marks recorded
-                </p>
-              </div>
-              <div className="stat-card">
-                <h3>Announcements</h3>
-                <div className="stat-value">{announcements.length}</div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                  Recent updates
-                </p>
+          <div className="tab-content-card" style={{ padding: '2rem' }}>
+            <div className="section-header-modern">
+              <h3><FiTrendingUp className="icon-glow" /> Academic Overview</h3>
+            </div>
+            <div className="summary-cards-grid">
+              <SummaryCard
+                title="Attendance Rate"
+                value={`${calculateAttendancePercentage()}%`}
+                icon={<FiCheckCircle size={24} />}
+                color="var(--primary-color)"
+                subtitle={`${attendance.filter(a => a.present).length} / ${attendance.length} Days`}
+              />
+              <SummaryCard
+                title="Cumulative Grade"
+                value={`${calculateOverallPercentage()}%`}
+                icon={<FiBarChart size={24} />}
+                color="#7c3aed"
+                subtitle={`From ${marks.length} Assessments`}
+              />
+              <SummaryCard
+                title="Notices"
+                value={announcements.length}
+                icon={<FiBell size={24} />}
+                color="#f59e0b"
+                subtitle="Latest Updates"
+              />
+            </div>
+
+            <div className="dashboard-grid" style={{ marginTop: '2.5rem' }}>
+              <div className="card hover-scale" style={{ padding: '2rem', border: '1px solid var(--border-color)', borderRadius: '1.25rem', display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                <div style={{ width: '120px' }}>
+                  <CircularProgress percentage={calculateAttendancePercentage()} size={120} strokeWidth={10} color="var(--primary-color)" />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--primary-dark)' }}>Presence Index</h4>
+                  <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 1rem' }}>Your child's participation in live academic sessions.</p>
+                  <span className="status-indicator success">Steady Progress</span>
+                </div>
               </div>
             </div>
           </div>
@@ -211,41 +234,42 @@ const ParentDashboard = () => {
 
         {/* Attendance Tab */}
         {activeTab === 'attendance' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>Attendance Records</h3>
-            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-color)', borderRadius: '0.5rem' }}>
-              <strong>Overall Attendance: {calculateAttendancePercentage()}%</strong>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiCheckCircle className="icon-glow" /> Daily Register</h3>
             </div>
+
             {attendance.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                No attendance records found
-              </p>
+              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                <FiCalendar size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No attendance logs recorded for this period.</p>
+              </div>
             ) : (
-              <div className="table-container">
-                <table className="table">
+              <div className="modern-table-container">
+                <table className="modern-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Status</th>
+                      <th>Academic Date</th>
+                      <th>Roll Status</th>
+                      <th>Notes</th>
                     </tr>
                   </thead>
                   <tbody>
                     {attendance.map(record => (
                       <tr key={record.id}>
-                        <td>{format(new Date(record.date), 'MMM dd, yyyy')}</td>
+                        <td style={{ fontWeight: 700 }}>{record.date ? safeFormat(record.date, 'MMM dd, yyyy') : 'N/A'}</td>
                         <td>
                           {record.present ? (
-                            <span className="badge badge-success">
-                              <FiCheckCircle size={14} style={{ marginRight: '0.25rem' }} />
-                              Present
+                            <span className="status-indicator success">
+                              <FiCheck size={14} /> Present
                             </span>
                           ) : (
-                            <span className="badge badge-danger">
-                              <FiXCircle size={14} style={{ marginRight: '0.25rem' }} />
-                              Absent
+                            <span className="status-indicator danger">
+                              <FiClock size={14} /> Absent
                             </span>
                           )}
                         </td>
+                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Official School Record</td>
                       </tr>
                     ))}
                   </tbody>
@@ -257,46 +281,51 @@ const ParentDashboard = () => {
 
         {/* Marks Tab */}
         {activeTab === 'marks' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>Academic Performance</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiClipboard className="icon-glow" /> Academic Evaluation</h3>
+            </div>
             {marks.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                No marks available
-              </p>
+              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                <FiBookOpen size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No evaluation records published yet.</p>
+              </div>
             ) : (
-              <div className="table-container">
-                <table className="table">
+              <div className="modern-table-container">
+                <table className="modern-table">
                   <thead>
                     <tr>
-                      <th>Subject</th>
-                      <th>Exam Type</th>
-                      <th>Marks Obtained</th>
-                      <th>Total Marks</th>
-                      <th>Percentage</th>
-                      <th>Grade</th>
+                      <th>Subject Matter</th>
+                      <th>Assessment Type</th>
+                      <th>Metrics</th>
+                      <th>Weightage</th>
+                      <th>Standing</th>
                     </tr>
                   </thead>
                   <tbody>
                     {marks.map(mark => {
-                      const percentage = ((mark.marks / mark.totalMarks) * 100).toFixed(2);
+                      const percentage = ((mark.marks / mark.totalMarks) * 100);
                       const getGrade = (perc) => {
-                        if (perc >= 90) return 'A+';
-                        if (perc >= 80) return 'A';
-                        if (perc >= 70) return 'B';
-                        if (perc >= 60) return 'C';
-                        if (perc >= 50) return 'D';
-                        return 'F';
+                        if (perc >= 90) return { label: 'A+', class: 'success' };
+                        if (perc >= 80) return { label: 'A', class: 'success' };
+                        if (perc >= 70) return { label: 'B', class: 'info' };
+                        if (perc >= 60) return { label: 'C', class: 'warning' };
+                        if (perc >= 50) return { label: 'D', class: 'warning' };
+                        return { label: 'F', class: 'danger' };
                       };
+                      const grade = getGrade(percentage);
                       return (
                         <tr key={mark.id}>
-                          <td>{mark.subject}</td>
-                          <td>{mark.examType}</td>
-                          <td>{mark.marks}</td>
-                          <td>{mark.totalMarks}</td>
-                          <td>{percentage}%</td>
+                          <td style={{ fontWeight: 700 }}>{mark.subject}</td>
+                          <td style={{ color: 'var(--text-secondary)' }}>{mark.examType}</td>
                           <td>
-                            <span className={`badge ${percentage >= 50 ? 'badge-success' : 'badge-danger'}`}>
-                              {getGrade(percentage)}
+                            <div style={{ fontWeight: 800, color: 'var(--primary-dark)' }}>{mark.marks} <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>/ {mark.totalMarks}</span></div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary-color)' }}>{percentage.toFixed(1)}%</div>
+                          </td>
+                          <td>100%</td>
+                          <td>
+                            <span className={`status-indicator ${grade.class}`}>
+                              {grade.label}
                             </span>
                           </td>
                         </tr>
@@ -311,23 +340,35 @@ const ParentDashboard = () => {
 
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem' }}>School Announcements</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiBell className="icon-glow" /> Official Gazettes</h3>
+            </div>
             {announcements.length === 0 ? (
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
-                No announcements available
-              </p>
+              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                <FiBell size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No official communications posted yet.</p>
+              </div>
             ) : (
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {announcements.map(announcement => (
-                  <div key={announcement.id} className="card" style={{ marginBottom: '1rem' }}>
-                    <h4 style={{ marginBottom: '0.5rem' }}>{announcement.title}</h4>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                      {announcement.message}
-                    </p>
-                    <small style={{ color: 'var(--text-secondary)' }}>
-                      {format(new Date(announcement.createdAt), 'MMM dd, yyyy HH:mm')}
-                    </small>
+                  <div key={announcement.id} className="card hover-scale" style={{ padding: '2rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1.25rem', boxShadow: 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: 0, color: 'var(--primary-dark)', fontWeight: 800, fontSize: '1.2rem', marginBottom: '0.75rem' }}>{announcement.title}</h4>
+                        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                          {announcement.message}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'white', padding: '0.4rem 0.75rem', borderRadius: '0.6rem', fontWeight: 700, border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <FiCalendar size={14} /> {announcement.createdAt ? safeFormat(announcement.createdAt, 'MMM dd, yyyy') : 'N/A'}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-color)', fontSize: '0.8rem', fontWeight: 700 }}>
+                            <FiClock size={14} /> {announcement.createdAt ? safeFormat(announcement.createdAt, 'HH:mm') : 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

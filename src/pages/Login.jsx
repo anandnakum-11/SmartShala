@@ -41,7 +41,15 @@ const Login = () => {
         navigate(getDashboardPath(role), { replace: true });
       }, 1000);
     } catch (err) {
-      const errorMsg = err.message || 'Failed to login. Please check your credentials.';
+      let errorMsg = err.message || 'Failed to login. Please check your credentials.';
+
+      // Handle Firebase configuration errors
+      if (err.code === 'auth/invalid-api-key' || err.message?.includes('api-key-not-valid')) {
+        errorMsg = 'Firebase configuration error: Invalid API Key. Please check your .env file.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMsg = 'Network error. Please check your internet connection.';
+      }
+
       setError(errorMsg);
       showToast(errorMsg, 'error');
       // Add shake animation to form
@@ -56,17 +64,21 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card animate-scale-in">
-        <div className="auth-header animate-fade-in-down">
-          <div className="auth-logo-container">
-            <img src="/logo.jpeg" alt="SmartShala Logo" className="auth-logo" onError={(e) => { e.target.style.display = 'none'; }} />
-            <div className="auth-logo-text">
-              <h1>SmartShala</h1>
-              <p className="auth-tagline">Simple Tools. Strong Schools.</p>
+    <div className="auth-container" style={{ background: 'var(--bg-color)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div className="auth-card animate-scale-in" style={{ width: '100%', maxWidth: '480px', background: 'white', borderRadius: '1.5rem', padding: '3rem', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)' }}>
+        <div className="auth-header animate-fade-in-down" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div className="auth-logo-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
+            <img
+              src="/logo.jpeg"
+              alt="SmartShala Logo"
+              className="auth-logo animate-scale-in"
+              style={{ height: '70px', borderRadius: '1rem', border: '2px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}
+            />
+            <div className="auth-logo-text" style={{ textAlign: 'left' }}>
+              <h1 style={{ fontSize: '2.4rem', fontWeight: 950, color: 'var(--primary-dark)', letterSpacing: '-0.05em', lineHeight: 1 }}>SmartShala</h1>
+              <p className="auth-tagline" style={{ color: 'var(--text-secondary)', fontWeight: 700, fontSize: '0.95rem' }}>Institutional Portal Access</p>
             </div>
           </div>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Sign in to your account</p>
         </div>
 
         {error && (
@@ -131,4 +143,3 @@ const Login = () => {
 };
 
 export default Login;
-

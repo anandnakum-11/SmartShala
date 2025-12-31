@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
-import { FiUpload, FiFile, FiCheck, FiX, FiPlus, FiCalendar, FiBookOpen, FiClipboard, FiUsers, FiBarChart, FiSearch, FiFilter, FiCheckCircle, FiClock } from 'react-icons/fi';
+import { FiUpload, FiFile, FiCheck, FiX, FiPlus, FiCalendar, FiBookOpen, FiClipboard, FiUsers, FiBarChart, FiSearch, FiFilter, FiCheckCircle, FiClock, FiBell } from 'react-icons/fi';
 import { format } from 'date-fns';
 import Calendar from '../components/Calendar';
 import SummaryCard from '../components/SummaryCard';
@@ -11,6 +11,19 @@ import ProgressBar from '../components/ProgressBar';
 
 const TeacherDashboard = () => {
   const { currentUser } = useAuth();
+
+  // Safe date formatting utility
+  const safeFormat = (date, formatStr) => {
+    try {
+      if (!date) return 'N/A';
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'N/A';
+      return format(d, formatStr);
+    } catch (e) {
+      console.error('Date formatting error:', e);
+      return 'N/A';
+    }
+  };
   const [activeTab, setActiveTab] = useState('overview');
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -345,8 +358,8 @@ const TeacherDashboard = () => {
     const dateStr = selectedDate;
     const filteredAtt = attendance.filter(a => {
       const attendanceDate = a.date?.toDate
-        ? format(a.date.toDate(), 'yyyy-MM-dd')
-        : (a.date ? format(new Date(a.date), 'yyyy-MM-dd') : '');
+        ? safeFormat(a.date.toDate(), 'yyyy-MM-dd')
+        : (a.date ? safeFormat(new Date(a.date), 'yyyy-MM-dd') : '');
 
       if (attendanceDate !== dateStr) return false;
       if (a.classId !== attendanceFilters.class) return false;
@@ -397,8 +410,8 @@ const TeacherDashboard = () => {
     const dateStr = clickedDate;
     const dayAttendance = attendance.filter(a => {
       const attendanceDate = a.date?.toDate
-        ? format(a.date.toDate(), 'yyyy-MM-dd')
-        : (a.date ? format(new Date(a.date), 'yyyy-MM-dd') : '');
+        ? safeFormat(a.date.toDate(), 'yyyy-MM-dd')
+        : (a.date ? safeFormat(new Date(a.date), 'yyyy-MM-dd') : '');
       return attendanceDate === dateStr && a.present;
     });
 
@@ -437,47 +450,44 @@ const TeacherDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid var(--border-color)' }}>
-          <button
-            className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('overview')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Overview
-          </button>
-          <button
-            className={`btn ${activeTab === 'attendance' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('attendance')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Attendance
-          </button>
-          <button
-            className={`btn ${activeTab === 'assignments' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('assignments')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Assignments
-          </button>
-          <button
-            className={`btn ${activeTab === 'marks' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('marks')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            Marks
-          </button>
-          <button
-            className={`btn ${activeTab === 'schedule' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setActiveTab('schedule')}
-            style={{ borderRadius: '0.5rem 0.5rem 0 0', marginBottom: '-2px' }}
-          >
-            My Schedule
-          </button>
+        <div className="tabs-container-modern">
+          <div className="tabs-list-modern">
+            <button
+              className={`tab-item-modern ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <FiBarChart /> Overview
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'attendance' ? 'active' : ''}`}
+              onClick={() => setActiveTab('attendance')}
+            >
+              <FiCheckCircle /> Attendance
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'assignments' ? 'active' : ''}`}
+              onClick={() => setActiveTab('assignments')}
+            >
+              <FiClipboard /> Assignments
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'marks' ? 'active' : ''}`}
+              onClick={() => setActiveTab('marks')}
+            >
+              <FiUpload /> Marks
+            </button>
+            <button
+              className={`tab-item-modern ${activeTab === 'schedule' ? 'active' : ''}`}
+              onClick={() => setActiveTab('schedule')}
+            >
+              <FiCalendar /> My Schedule
+            </button>
+          </div>
         </div>
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="dashboard-overview">
+          <div className="tab-content-card" style={{ padding: '1.5rem' }}>
             {/* Summary Cards */}
             <div className="summary-cards-grid">
               <SummaryCard
@@ -518,18 +528,20 @@ const TeacherDashboard = () => {
             <div className="dashboard-grid">
               <div className="dashboard-card">
                 <div className="dashboard-card-header">
-                  <h3>Recent Activity</h3>
+                  <h3><FiClock style={{ marginRight: '0.5rem' }} /> Recent Activity</h3>
                   <button className="btn-link">View All</button>
                 </div>
                 <div className="activity-list">
-                  {assignments.slice(0, 5).map(assignment => (
+                  {Array.isArray(assignments) && assignments.slice(0, 5).map(assignment => (
                     <div key={assignment.id} className="activity-item">
                       <div className="activity-icon">
                         <FiClipboard size={20} />
                       </div>
                       <div className="activity-content">
-                        <p className="activity-text">New assignment: {assignment.title}</p>
-                        <span className="activity-time">{format(new Date(assignment.createdAt), 'MMM dd, yyyy')}</span>
+                        <p className="activity-text">New assignment: {assignment.title || 'Untitled'}</p>
+                        <span className="activity-time">
+                          {assignment.createdAt ? safeFormat(assignment.createdAt, 'MMM dd, yyyy') : 'Recently'}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -580,9 +592,9 @@ const TeacherDashboard = () => {
 
         {/* Attendance Tab */}
         {activeTab === 'attendance' && (
-          <div className="attendance-section">
-            <div className="attendance-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 className="section-title">Subject Attendance</h2>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiCalendar className="icon-glow" /> Subject Attendance</h3>
               <button
                 className="btn btn-primary"
                 onClick={() => {
@@ -590,15 +602,15 @@ const TeacherDashboard = () => {
                   setShowAttendanceModal(true);
                 }}
               >
-                <FiCalendar size={18} />
-                Mark Attendance
+                <FiPlus size={18} />
+                Mark New Attendance
               </button>
             </div>
 
             {/* Filters */}
-            <div className="attendance-filters" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
-              <div className="filter-group" style={{ flex: 1 }}>
-                <label>Class *</label>
+            <div className="attendance-filters" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', background: 'var(--bg-color)', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
+              <div className="filter-group">
+                <label>Select Class</label>
                 <select
                   className="filter-select"
                   value={attendanceFilters.class}
@@ -606,14 +618,14 @@ const TeacherDashboard = () => {
                     setAttendanceFilters({ ...attendanceFilters, class: e.target.value, section: 'All' });
                   }}
                 >
-                  <option value="">Select Class</option>
+                  <option value="">Choose Class...</option>
                   {classes.map(cls => (
                     <option key={cls.id} value={cls.id}>{cls.name} {cls.section ? `- ${cls.section}` : ''}</option>
                   ))}
                 </select>
               </div>
-              <div className="filter-group" style={{ flex: 1 }}>
-                <label>Section *</label>
+              <div className="filter-group">
+                <label>Select Section</label>
                 <select
                   className="filter-select"
                   value={attendanceFilters.section}
@@ -643,125 +655,124 @@ const TeacherDashboard = () => {
                 className="btn btn-primary"
                 onClick={handleSearchAttendance}
                 disabled={!attendanceFilters.class || !selectedDate}
-                style={{ height: 'fit-content' }}
+                style={{ height: '3.1rem', marginTop: 'auto' }}
               >
                 <FiSearch size={18} />
-                Search
+                Fetch Records
               </button>
             </div>
 
-            {/* Selected Date Display */}
-            <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--bg-color)', borderRadius: '0.5rem' }}>
-              <strong>Selected Date: </strong>
-              <span>{selectedDate ? format(new Date(selectedDate), 'MMMM dd, yyyy') : 'Please select a date from calendar'}</span>
-            </div>
-
             {/* Attendance Content Grid */}
-            <div className="attendance-content-grid">
+            <div className="attendance-content-grid" style={{ gridTemplateColumns: 'minmax(300px, 1fr) 2fr' }}>
               {/* Calendar and Summary Sidebar */}
               <div className="attendance-sidebar">
-                <div className="calendar-card">
+                <div className="calendar-card" style={{ border: '1px solid var(--border-color)' }}>
                   <Calendar
                     selectedDate={selectedDate}
                     onDateSelect={(date) => {
                       setSelectedDate(date);
-                      // Show day attendance modal
                       handleShowDayAttendance(date);
-                      // Auto-search if filters are already set
                       if (attendanceFilters.class) {
                         setTimeout(() => handleSearchAttendance(), 100);
                       }
                     }}
                     markedDates={attendance.map(a => {
-                      if (a.date?.toDate) {
-                        return a.date.toDate();
-                      }
+                      if (a.date?.toDate) return a.date.toDate();
                       return a.date ? new Date(a.date) : new Date();
                     })}
                   />
                 </div>
 
-
+                <div style={{ marginTop: '1rem', padding: '1.25rem', background: 'var(--bg-color)', borderRadius: '1rem', border: '1px solid var(--border-color)' }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Active Selection</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--primary-dark)' }}>
+                    <FiCalendar style={{ marginRight: '0.5rem' }} />
+                    {selectedDate ? safeFormat(new Date(selectedDate), 'MMMM dd, yyyy') : 'Pick a date'}
+                  </div>
+                </div>
               </div>
 
               {/* Attendance Table */}
-              <div className="attendance-table-card" style={{ flex: 1 }}>
-                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3>Attendance for {selectedDate ? format(new Date(selectedDate), 'MMMM dd, yyyy') : 'Selected Date'}</h3>
-                  {filteredAttendance.length > 0 && (
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setEditingAttendance(!editingAttendance)}
-                    >
-                      {editingAttendance ? 'Done Editing' : 'Edit Attendance'}
-                    </button>
-                  )}
-                </div>
-                {filteredAttendance.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                    {!selectedDate ? (
-                      <p>Please select a date from the calendar</p>
-                    ) : !attendanceFilters.class ? (
-                      <p>Please select a class and section, then click Search</p>
-                    ) : (
-                      <p>No attendance records found for this date, class, and section</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="modern-table-container" style={{ marginTop: 0 }}>
+                  <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
+                    <h4 style={{ margin: 0, fontWeight: 700 }}>Students List</h4>
+                    {filteredAttendance.length > 0 && (
+                      <button
+                        className="teacher-action-btn-modern btn-secondary"
+                        onClick={() => setEditingAttendance(!editingAttendance)}
+                      >
+                        {editingAttendance ? <FiCheck /> : <FiSearch />}
+                        {editingAttendance ? 'Finish' : 'Edit'}
+                      </button>
                     )}
                   </div>
-                ) : (
-                  <div className="table-container">
-                    <table className="attendance-table">
-                      <thead>
+                  <table className="modern-table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Student Name</th>
+                        <th>Status</th>
+                        {editingAttendance && <th style={{ textAlign: 'right' }}>Actions</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredStudents.length === 0 ? (
                         <tr>
-                          <th>Student ID</th>
-                          <th>Name</th>
-                          <th>Status</th>
-                          {editingAttendance && <th>Action</th>}
+                          <td colSpan={editingAttendance ? 4 : 3} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                            <FiUsers size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                            <p style={{ margin: 0 }}>No students found in this class/section. Select a class and click Fetch.</p>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {filteredStudents.map(student => {
+                      ) : (
+                        filteredStudents.map(student => {
                           const attendanceRecord = filteredAttendance.find(a => a.studentId === student.id);
                           const isPresent = attendanceRecord?.present ?? false;
                           return (
                             <tr key={student.id}>
-                              <td>{student.studentId || student.id.slice(0, 8)}</td>
-                              <td>{student.name || student.email}</td>
+                              <td style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>
+                                {student.studentId || student.id.slice(0, 8)}
+                              </td>
+                              <td>
+                                <div style={{ fontWeight: 600 }}>{student.name || student.email}</div>
+                              </td>
                               <td>
                                 {attendanceRecord ? (
-                                  <span className={`badge ${isPresent ? 'badge-success' : 'badge-danger'}`}>
+                                  <span className={`status-indicator ${isPresent ? 'success' : 'danger'}`}>
+                                    {isPresent ? <FiCheckCircle size={14} /> : <FiX size={14} />}
                                     {isPresent ? 'Present' : 'Absent'}
                                   </span>
                                 ) : (
-                                  <span className="badge badge-secondary">Not Marked</span>
+                                  <span className="status-indicator info">Not Marked</span>
                                 )}
                               </td>
                               {editingAttendance && (
-                                <td>
-                                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <td style={{ textAlign: 'right' }}>
+                                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                     <button
-                                      className={`btn ${isPresent ? 'btn-success' : 'btn-secondary'}`}
-                                      style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}
+                                      className={`teacher-action-btn-modern ${isPresent ? 'btn-success' : 'btn-secondary'}`}
+                                      style={{ padding: '0.4rem 0.8rem' }}
                                       onClick={() => handleUpdateAttendance(attendanceRecord?.id, student.id, true)}
                                     >
-                                      <FiCheck size={14} /> Present
+                                      Present
                                     </button>
                                     <button
-                                      className={`btn ${!isPresent && attendanceRecord ? 'btn-danger' : 'btn-secondary'}`}
-                                      style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem' }}
+                                      className={`teacher-action-btn-modern ${!isPresent && attendanceRecord ? 'btn-danger' : 'btn-secondary'}`}
+                                      style={{ padding: '0.4rem 0.8rem' }}
                                       onClick={() => handleUpdateAttendance(attendanceRecord?.id, student.id, false)}
                                     >
-                                      <FiX size={14} /> Absent
+                                      Absent
                                     </button>
                                   </div>
                                 </td>
                               )}
                             </tr>
                           );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -769,21 +780,20 @@ const TeacherDashboard = () => {
 
         {/* Schedule Tab */}
         {activeTab === 'schedule' && (
-          <div>
-            <div className="card-header">
-              <h3>My Weekly Schedule</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiClock className="icon-glow" /> My Weekly Schedule</h3>
             </div>
             {teacherProfile ? (
-              <div className="timetable-container">
-                <div className="timetable-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+              <div className="timetable-container" style={{ marginTop: '1rem' }}>
+                <div className="timetable-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
-                    // Filter and aggregate classes for this day across all timetables
                     let myClasses = [];
                     timetables.forEach(t => {
                       if (t.schedule && t.schedule[day]) {
                         const matching = t.schedule[day].filter(entry =>
                           (entry.teacherId && entry.teacherId === teacherProfile.teacherId) ||
-                          (entry.teacherId && entry.teacherId === currentUser.uid) // Fallback support
+                          (entry.teacherId && entry.teacherId === currentUser.uid)
                         );
                         matching.forEach(m => {
                           myClasses.push({
@@ -794,31 +804,37 @@ const TeacherDashboard = () => {
                       }
                     });
 
-                    // Sort by time
                     myClasses.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
                     return (
-                      <div key={day} className="card" style={{ padding: '1rem', background: 'var(--bg-secondary)' }}>
-                        <h5 style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+                      <div key={day} className="card" style={{ padding: '1.5rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1rem', boxShadow: 'none' }}>
+                        <h5 style={{ borderBottom: '2px solid var(--primary-color)', paddingBottom: '0.75rem', marginBottom: '1.25rem', color: 'var(--primary-dark)', fontWeight: 800, fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           {day}
                         </h5>
                         {myClasses.length === 0 ? (
-                          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>No classes</p>
+                          <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.02)', borderRadius: '0.5rem', border: '1px dashed var(--border-color)' }}>
+                            <p style={{ margin: 0, fontSize: '0.85rem', fontStyle: 'italic' }}>No classes scheduled</p>
+                          </div>
                         ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                             {myClasses.map((entry, idx) => (
                               <div key={idx} style={{
-                                background: 'var(--bg-color)',
-                                padding: '0.75rem',
-                                borderRadius: '0.5rem',
-                                borderLeft: '3px solid var(--primary-color)'
-                              }}>
-                                <div style={{ fontWeight: 'bold' }}>{entry.subject}</div>
-                                <div style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                                  <span className="badge badge-info" style={{ fontSize: '0.75rem' }}>{entry.className}</span>
+                                background: 'white',
+                                padding: '1rem',
+                                borderRadius: '0.75rem',
+                                borderLeft: '4px solid var(--primary-color)',
+                                boxShadow: 'var(--shadow-sm)',
+                                transition: 'transform 0.2s',
+                              }}
+                                className="stagger-item hover-scale"
+                              >
+                                <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{entry.subject}</div>
+                                <div style={{ fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+                                  <span className="badge badge-info" style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', fontWeight: 600 }}>{entry.className}</span>
                                 </div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.5rem' }}>
-                                  <FiClock size={12} /> {entry.startTime} - {entry.endTime}
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-color)', padding: '0.4rem 0.6rem', borderRadius: '0.4rem' }}>
+                                  <FiClock size={14} style={{ color: 'var(--primary-color)' }} />
+                                  <span style={{ fontWeight: 600 }}>{entry.startTime} - {entry.endTime}</span>
                                 </div>
                               </div>
                             ))}
@@ -831,7 +847,7 @@ const TeacherDashboard = () => {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                <p>Loading profile...</p>
+                <p>Loading your schedule...</p>
               </div>
             )}
           </div>
@@ -839,17 +855,17 @@ const TeacherDashboard = () => {
 
         {/* Assignments Tab */}
         {activeTab === 'assignments' && (
-          <div>
-            <div className="card-header">
-              <h3>Assignments</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiClipboard className="icon-glow" /> Assignments</h3>
               <button className="btn btn-primary" onClick={() => setShowAssignmentModal(true)}>
                 <FiPlus size={18} />
                 Upload Assignment
               </button>
             </div>
 
-            <div className="table-container">
-              <table className="table">
+            <div className="modern-table-container">
+              <table className="modern-table">
                 <thead>
                   <tr>
                     <th>Title</th>
@@ -865,7 +881,6 @@ const TeacherDashboard = () => {
                   {Array.isArray(assignments) && assignments.map(assignment => {
                     if (!assignment) return null;
 
-                    // Defensive checks for arrays
                     const safeStudents = Array.isArray(students) ? students : [];
                     const safeSubmissions = Array.isArray(submissions) ? submissions : [];
                     const safeClasses = Array.isArray(classes) ? classes : [];
@@ -879,60 +894,70 @@ const TeacherDashboard = () => {
 
                     return (
                       <tr key={assignment.id}>
-                        <td>{assignment.title || 'Untitled'}</td>
                         <td>
-                          {(() => {
-                            if (!assignment.dueDate) return 'N/A';
-                            const date = new Date(assignment.dueDate);
-                            return !isNaN(date.getTime()) ? format(date, 'MMM dd, yyyy') : 'Invalid Date';
-                          })()}
-                        </td>
-                        <td>{classObj?.name || assignment.classId || 'N/A'}</td>
-                        <td>
-                          {assignment.fileUrl ? (
-                            assignment.isBase64 ? (
-                              <a
-                                href={assignment.fileUrl}
-                                download={assignment.fileName || 'assignment-file'}
-                                style={{ textDecoration: 'none' }}
-                              >
-                                <FiFile size={18} /> {assignment.fileName || 'Download'}
-                              </a>
-                            ) : (
-                              <a href={assignment.fileUrl} target="_blank" rel="noopener noreferrer">
-                                <FiFile size={18} />
-                              </a>
-                            )
-                          ) : 'No file'}
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                            <span style={{ color: 'var(--success-color)', fontWeight: 600 }}>
-                              ✓ {submittedCount} Submitted
-                            </span>
-                            <span style={{ color: 'var(--warning-color)', fontWeight: 600 }}>
-                              ⚠ {remainingCount} Remaining
-                            </span>
-                            <small style={{ color: 'var(--text-secondary)' }}>
-                              Total: {totalStudents} students
-                            </small>
+                          <div style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>
+                            {assignment.title || 'Untitled'}
                           </div>
                         </td>
                         <td>
-                          {remainingCount > 0 ? (
-                            <span className="badge badge-warning">Pending</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                            <FiCalendar size={14} />
+                            {(() => {
+                              if (!assignment.dueDate) return 'N/A';
+                              const date = new Date(assignment.dueDate);
+                              return !isNaN(date.getTime()) ? safeFormat(date, 'MMM dd, yyyy') : 'Invalid Date';
+                            })()}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="badge badge-info" style={{ padding: '0.4rem 0.8rem', borderRadius: '0.5rem' }}>
+                            {classObj?.name || assignment.classId || 'N/A'}
+                          </span>
+                        </td>
+                        <td>
+                          {assignment.fileUrl ? (
+                            <a
+                              href={assignment.fileUrl}
+                              download={assignment.fileName || 'assignment-file'}
+                              target={assignment.isBase64 ? "_self" : "_blank"}
+                              rel="noopener noreferrer"
+                              className="file-link-modern"
+                            >
+                              <FiFile size={18} />
+                              <span>{assignment.fileName ? (assignment.fileName.length > 15 ? assignment.fileName.substring(0, 12) + '...' : assignment.fileName) : 'View File'}</span>
+                            </a>
                           ) : (
-                            <span className="badge badge-success">All Submitted</span>
+                            <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No file</span>
+                          )}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success-color)' }}></div>
+                              <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{submittedCount} Submitted</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--warning-color)' }}></div>
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{remainingCount} Pending</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          {remainingCount === 0 ? (
+                            <span className="status-indicator success">
+                              <FiCheckCircle size={14} /> Complete
+                            </span>
+                          ) : (
+                            <span className="status-indicator warning">
+                              <FiClock size={14} /> {submittedCount}/{totalStudents}
+                            </span>
                           )}
                         </td>
                         <td>
                           {remainingCount > 0 && (
                             <button
-                              className="btn btn-secondary"
-                              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-                              onClick={() => {
-                                showToast(`Notification feature coming soon! ${remainingCount} students need to submit.`, 'info');
-                              }}
+                              className="teacher-action-btn-modern btn-secondary"
+                              onClick={() => showToast(`Notification sent to ${remainingCount} students.`, 'info')}
                             >
                               <FiBell size={14} /> Notify
                             </button>
@@ -949,17 +974,17 @@ const TeacherDashboard = () => {
 
         {/* Marks Tab */}
         {activeTab === 'marks' && (
-          <div>
-            <div className="card-header">
-              <h3>Student Marks</h3>
+          <div className="tab-content-card">
+            <div className="section-header-modern">
+              <h3><FiBarChart className="icon-glow" /> Student Marks</h3>
               <button className="btn btn-primary" onClick={() => setShowMarksModal(true)}>
                 <FiPlus size={18} />
                 Add Marks
               </button>
             </div>
 
-            <div className="table-container">
-              <table className="table">
+            <div className="modern-table-container">
+              <table className="modern-table">
                 <thead>
                   <tr>
                     <th>Student</th>
@@ -968,20 +993,40 @@ const TeacherDashboard = () => {
                     <th>Marks</th>
                     <th>Total</th>
                     <th>Percentage</th>
+                    <th>Performance</th>
                   </tr>
                 </thead>
                 <tbody>
                   {marks.map(mark => {
                     const student = students.find(s => s.id === mark.studentId);
-                    const percentage = ((mark.marks / mark.totalMarks) * 100).toFixed(2);
+                    const percentage = parseFloat(((mark.marks / mark.totalMarks) * 100).toFixed(2));
+
+                    let statusClass = 'success';
+                    if (percentage < 40) statusClass = 'danger';
+                    else if (percentage < 75) statusClass = 'warning';
+
                     return (
                       <tr key={mark.id}>
-                        <td>{student?.name || 'N/A'}</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{student?.name || 'N/A'}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{student?.email}</div>
+                        </td>
                         <td>{mark.subject}</td>
-                        <td>{mark.examType}</td>
-                        <td>{mark.marks}</td>
-                        <td>{mark.totalMarks}</td>
-                        <td>{percentage}%</td>
+                        <td>
+                          <span className="badge badge-info" style={{ textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                            {mark.examType}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: 700, color: 'var(--primary-dark)' }}>{mark.marks}</td>
+                        <td style={{ color: 'var(--text-secondary)' }}>{mark.totalMarks}</td>
+                        <td>
+                          <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{percentage}%</div>
+                        </td>
+                        <td>
+                          <span className={`status-indicator ${statusClass}`}>
+                            {percentage >= 75 ? 'Excellent' : percentage >= 40 ? 'Satisfactory' : 'Needs Improvement'}
+                          </span>
+                        </td>
                       </tr>
                     );
                   })}
@@ -994,455 +1039,381 @@ const TeacherDashboard = () => {
 
       {/* Attendance Modal */}
       {showAttendanceModal && (
-        <div className="modal-overlay" onClick={() => setShowAttendanceModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Mark Attendance</h3>
-              <button className="modal-close" onClick={() => setShowAttendanceModal(false)}>
+        <div className="modal-overlay animate-fade-in" onClick={() => setShowAttendanceModal(false)}>
+          <div className="modal-modern animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <div className="modal-header-modern">
+              <h3 className="modal-title-modern">Mark Attendance</h3>
+              <button className="modal-close-modern" onClick={() => setShowAttendanceModal(false)}>
                 <FiX size={24} />
               </button>
             </div>
-            <form onSubmit={handleMarkAttendance}>
-              <div className="form-group">
-                <label className="form-label">Date</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Class</label>
-                <select
-                  className="form-select"
-                  value={selectedClass}
-                  onChange={(e) => {
-                    setSelectedClass(e.target.value);
-                    // Reinitialize attendance data when class changes
-                    if (e.target.value) {
-                      const filteredStudents = students.filter(student => student.classId === e.target.value || !student.classId);
-                      const data = {};
-                      filteredStudents.forEach(student => {
-                        data[student.id] = true;
-                      });
-                      setAttendanceData(data);
-                    } else {
-                      initializeAttendanceData();
-                    }
-                  }}
-                  required
-                >
-                  <option value="">Select Class</option>
-                  {classes.map(cls => (
-                    <option key={cls.id} value={cls.id}>{cls.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Students</label>
-                <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '0.5rem', padding: '1rem' }}>
-                  {students.filter(student => {
-                    // Filter by selected class if class is selected
-                    if (selectedClass) {
-                      return student.classId === selectedClass || !student.classId;
-                    }
-                    return true;
-                  }).map((student, index) => (
-                    <div
-                      key={student.id}
-                      className="stagger-item"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', borderRadius: '0.5rem', transition: 'background 0.2s' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-color)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <span style={{ fontWeight: 500 }}>{student.name || student.email}</span>
-                      <div className="attendance-toggle">
-                        <button
-                          type="button"
-                          className={`attendance-toggle-btn present ${attendanceData[student.id] !== false ? 'active' : ''}`}
-                          onClick={(e) => {
-                            setAttendanceData({ ...attendanceData, [student.id]: true });
-                            // Add success animation
-                            const btn = e.target.closest('.attendance-toggle-btn');
-                            if (btn) {
-                              btn.style.transform = 'scale(0.95)';
-                              setTimeout(() => btn.style.transform = 'scale(1)', 150);
-                            }
-                          }}
-                        >
-                          <FiCheck size={16} /> Present
-                        </button>
-                        <button
-                          type="button"
-                          className={`attendance-toggle-btn absent ${attendanceData[student.id] === false ? 'active' : ''}`}
-                          onClick={(e) => {
-                            setAttendanceData({ ...attendanceData, [student.id]: false });
-                            // Add animation
-                            const btn = e.target.closest('.attendance-toggle-btn');
-                            if (btn) {
-                              btn.style.transform = 'scale(0.95)';
-                              setTimeout(() => btn.style.transform = 'scale(1)', 150);
-                            }
-                          }}
-                        >
-                          <FiX size={16} /> Absent
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+            <div className="modal-body-modern">
+              <form onSubmit={handleMarkAttendance}>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Date</label>
+                  <input
+                    type="date"
+                    className="form-input-modern"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    required
+                  />
                 </div>
-              </div>
-              <div className="flex gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAttendanceModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Save Attendance
-                </button>
-              </div>
-            </form>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Class</label>
+                  <select
+                    className="form-select-modern"
+                    value={selectedClass}
+                    onChange={(e) => {
+                      setSelectedClass(e.target.value);
+                      // Reinitialize attendance data when class changes
+                      if (e.target.value) {
+                        const filteredStudents = students.filter(student => student.classId === e.target.value || !student.classId);
+                        const data = {};
+                        filteredStudents.forEach(student => {
+                          data[student.id] = true;
+                        });
+                        setAttendanceData(data);
+                      } else {
+                        initializeAttendanceData();
+                      }
+                    }}
+                    required
+                  >
+                    <option value="">Select Class</option>
+                    {classes.map(cls => (
+                      <option key={cls.id} value={cls.id}>{cls.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Students</label>
+                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '1rem', padding: '1rem', background: 'var(--bg-color)' }}>
+                    {students.filter(student => {
+                      // Filter by selected class if class is selected
+                      if (selectedClass) {
+                        return student.classId === selectedClass || !student.classId;
+                      }
+                      return true;
+                    }).map((student, index) => (
+                      <div
+                        key={student.id}
+                        className="stagger-item"
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', borderRadius: '0.75rem', transition: 'background 0.2s', background: 'white', marginBottom: '0.5rem', boxShadow: 'var(--shadow-sm)' }}
+                      >
+                        <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>{student.name || student.email}</span>
+                        <div className="attendance-toggle" style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            className={`teacher-action-btn-modern btn-success ${attendanceData[student.id] !== false ? 'active' : ''}`}
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                            onClick={(e) => {
+                              setAttendanceData({ ...attendanceData, [student.id]: true });
+                              // Add success animation
+                              const btn = e.currentTarget;
+                              btn.style.transform = 'scale(0.95)';
+                              setTimeout(() => btn.style.transform = 'scale(1)', 150);
+                            }}
+                          >
+                            <FiCheck size={14} /> Present
+                          </button>
+                          <button
+                            type="button"
+                            className={`teacher-action-btn-modern btn-danger ${attendanceData[student.id] === false ? 'active' : ''}`}
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                            onClick={(e) => {
+                              setAttendanceData({ ...attendanceData, [student.id]: false });
+                              // Add animation
+                              const btn = e.currentTarget;
+                              btn.style.transform = 'scale(0.95)';
+                              setTimeout(() => btn.style.transform = 'scale(1)', 150);
+                            }}
+                          >
+                            <FiX size={14} /> Absent
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="modal-footer-modern" style={{ marginTop: '2rem', padding: 0, background: 'transparent', border: 'none' }}>
+                  <button type="button" className="teacher-action-btn-modern btn-secondary" onClick={() => setShowAttendanceModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="teacher-action-btn-modern btn-primary">
+                    Save Attendance Records
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Assignment Modal */}
       {showAssignmentModal && (
-        <div className="modal-overlay" onClick={() => setShowAssignmentModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Upload Assignment</h3>
-              <button className="modal-close" onClick={() => setShowAssignmentModal(false)}>
+        <div className="modal-overlay animate-fade-in" onClick={() => setShowAssignmentModal(false)}>
+          <div className="modal-modern animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
+            <div className="modal-header-modern">
+              <h3 className="modal-title-modern">Upload Assignment</h3>
+              <button className="modal-close-modern" onClick={() => setShowAssignmentModal(false)}>
                 <FiX size={24} />
               </button>
             </div>
-            <form onSubmit={handleUploadAssignment}>
-              {error && (
-                <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
-                  {error}
-                </div>
-              )}
-              <div className="form-group">
-                <label className="form-label">Title</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={assignmentForm.title}
-                  onChange={(e) => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
-                  required
-                  disabled={uploading}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Description</label>
-                <textarea
-                  className="form-input"
-                  rows="4"
-                  value={assignmentForm.description}
-                  onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
-                  disabled={uploading}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Due Date</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={assignmentForm.dueDate}
-                  onChange={(e) => setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })}
-                  required
-                  disabled={uploading}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Class</label>
-                <select
-                  className="form-select"
-                  value={assignmentForm.classId}
-                  onChange={(e) => setAssignmentForm({ ...assignmentForm, classId: e.target.value })}
-                  required
-                  disabled={uploading}
-                >
-                  <option value="">Select Class</option>
-                  {classes.length === 0 ? (
-                    <option value="" disabled>No classes available. Please create a class first.</option>
-                  ) : (
-                    classes.map(cls => (
-                      <option key={cls.id} value={cls.id}>{cls.name}</option>
-                    ))
-                  )}
-                </select>
-                {classes.length === 0 && (
-                  <small style={{ color: 'var(--warning-color)', display: 'block', marginTop: '0.5rem' }}>
-                    ⚠️ No classes found. Please create a class in the Admin dashboard first.
-                  </small>
+            <div className="modal-body-modern">
+              <form onSubmit={handleUploadAssignment}>
+                {error && (
+                  <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
+                    {error}
+                  </div>
                 )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">File (Optional)</label>
-                <div
-                  className={`file-drop-area ${uploading ? 'uploading' : ''}`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.add('dragover');
-                  }}
-                  onDragLeave={(e) => {
-                    e.currentTarget.classList.remove('dragover');
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.remove('dragover');
-                    const file = e.dataTransfer.files[0];
-                    if (file) {
-                      setAssignmentForm({ ...assignmentForm, file });
-                    }
-                  }}
-                >
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Assignment Title</label>
                   <input
-                    type="file"
-                    className="form-input"
-                    style={{ display: 'none' }}
-                    id="file-input"
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, file: e.target.files?.[0] || null })}
+                    type="text"
+                    className="form-input-modern"
+                    value={assignmentForm.title}
+                    onChange={(e) => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
+                    placeholder="e.g. Physics Lab Report"
+                    required
                     disabled={uploading}
                   />
-                  <label htmlFor="file-input" style={{ cursor: 'pointer', display: 'block', textAlign: 'center' }}>
-                    <FiUpload size={32} style={{ marginBottom: '0.5rem', color: 'var(--primary-color)' }} />
-                    <p style={{ marginBottom: '0.5rem', fontWeight: 500 }}>Click to upload or drag and drop</p>
-                    <small style={{ color: 'var(--text-secondary)' }}>Files up to 500 KB (Free storage)</small>
-                  </label>
                 </div>
-                {assignmentForm.file && (
-                  <div style={{ marginTop: '0.5rem' }} className="animate-fade-in-up">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <small style={{ color: 'var(--text-secondary)' }}>
-                        <FiFile size={14} style={{ marginRight: '0.25rem' }} />
-                        {assignmentForm.file.name} ({(assignmentForm.file.size / 1024).toFixed(2)} KB)
-                      </small>
-                      <button
-                        type="button"
-                        onClick={() => setAssignmentForm({ ...assignmentForm, file: null })}
-                        style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer' }}
-                      >
-                        <FiX size={16} />
-                      </button>
-                    </div>
-                    {assignmentForm.file.size > 500 * 1024 && (
-                      <div className="alert alert-error" style={{ padding: '0.5rem', marginTop: '0.5rem' }}>
-                        ⚠️ File is larger than 500 KB. Please compress it.
-                      </div>
-                    )}
-                    {assignmentForm.file.size <= 500 * 1024 && (
-                      <div className="alert alert-success" style={{ padding: '0.5rem', marginTop: '0.5rem' }}>
-                        <FiCheckCircle size={14} style={{ marginRight: '0.25rem' }} />
-                        File size is acceptable
-                      </div>
-                    )}
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Academic Description</label>
+                  <textarea
+                    className="form-input-modern"
+                    rows="4"
+                    value={assignmentForm.description}
+                    onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
+                    placeholder="Provide details about the assignment..."
+                    disabled={uploading}
+                  />
+                </div>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Submission Deadline</label>
+                  <input
+                    type="date"
+                    className="form-input-modern"
+                    value={assignmentForm.dueDate}
+                    onChange={(e) => setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })}
+                    required
+                    disabled={uploading}
+                  />
+                </div>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Target Cohort/Class</label>
+                  <select
+                    className="form-select-modern"
+                    value={assignmentForm.classId}
+                    onChange={(e) => setAssignmentForm({ ...assignmentForm, classId: e.target.value })}
+                    required
+                    disabled={uploading}
+                  >
+                    <option value="">Select Class</option>
+                    {classes.map(cls => (
+                      <option key={cls.id} value={cls.id}>{cls.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Reference Materials (Optional)</label>
+                  <div className="file-drop-area-modern" style={{ border: '2px dashed var(--border-color)', borderRadius: '1rem', padding: '2rem', textAlign: 'center', background: 'var(--bg-color)', transition: 'all 0.2s' }}>
+                    <input
+                      type="file"
+                      className="form-input"
+                      style={{ display: 'none' }}
+                      id="file-input"
+                      onChange={(e) => setAssignmentForm({ ...assignmentForm, file: e.target.files?.[0] || null })}
+                      disabled={uploading}
+                    />
+                    <label htmlFor="file-input" style={{ cursor: 'pointer' }}>
+                      <FiUpload size={32} style={{ color: 'var(--primary-color)', marginBottom: '1rem' }} />
+                      <p style={{ fontWeight: 600, color: 'var(--primary-dark)', marginBottom: '0.5rem' }}>Upload Document</p>
+                      <small style={{ color: 'var(--text-secondary)' }}>Max file size: 500 KB</small>
+                    </label>
                   </div>
-                )}
-                {uploading && uploadProgress > 0 && (
-                  <div className="upload-progress animate-fade-in-up" style={{ marginTop: '1rem' }}>
-                    <div className="upload-progress-text">
-                      <span>Uploading...</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <ProgressBar percentage={uploadProgress} color="#2563eb" />
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setShowAssignmentModal(false);
-                    setError('');
-                    setAssignmentForm({ title: '', description: '', dueDate: '', classId: '', file: null });
-                    const fileInput = document.querySelector('input[type="file"]');
-                    if (fileInput) fileInput.value = '';
-                  }}
-                  disabled={uploading}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={uploading}>
-                  <FiUpload size={18} />
-                  {uploading ? 'Uploading...' : 'Upload'}
-                </button>
-              </div>
-            </form>
+                </div>
+                <div className="modal-footer-modern" style={{ padding: 0, marginTop: '2rem', background: 'transparent', border: 'none' }}>
+                  <button
+                    type="button"
+                    className="teacher-action-btn-modern btn-secondary"
+                    onClick={() => setShowAssignmentModal(false)}
+                    disabled={uploading}
+                  >
+                    Discard
+                  </button>
+                  <button type="submit" className="teacher-action-btn-modern btn-primary" disabled={uploading}>
+                    <FiUpload size={18} />
+                    {uploading ? 'Processing...' : 'Upload Assignment'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Marks Modal */}
       {showMarksModal && (
-        <div className="modal-overlay" onClick={() => setShowMarksModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Add Marks</h3>
-              <button className="modal-close" onClick={() => setShowMarksModal(false)}>
+        <div className="modal-overlay animate-fade-in" onClick={() => setShowMarksModal(false)}>
+          <div className="modal-modern animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
+            <div className="modal-header-modern">
+              <h3 className="modal-title-modern">Add Evaluation Marks</h3>
+              <button className="modal-close-modern" onClick={() => setShowMarksModal(false)}>
                 <FiX size={24} />
               </button>
             </div>
-            <form onSubmit={handleAddMarks}>
-              <div className="form-group">
-                <label className="form-label">Student</label>
-                <select
-                  className="form-select"
-                  value={marksForm.studentId}
-                  onChange={(e) => setMarksForm({ ...marksForm, studentId: e.target.value })}
-                  required
-                >
-                  <option value="">Select Student</option>
-                  {students.map(student => (
-                    <option key={student.id} value={student.id}>{student.name || student.email}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Subject</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={marksForm.subject}
-                  onChange={(e) => setMarksForm({ ...marksForm, subject: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Exam Type *</label>
-                <select
-                  className="form-select"
-                  value={marksForm.examType}
-                  onChange={(e) => setMarksForm({ ...marksForm, examType: e.target.value })}
-                  required
-                >
-                  <option value="">Select Exam Type</option>
-                  <option value="Quiz">Quiz</option>
-                  <option value="Midterm">Midterm</option>
-                  <option value="Final">Final</option>
-                  <option value="Assignment">Assignment</option>
-                  <option value="Project">Project</option>
-                  <option value="Practical">Practical</option>
-                  <option value="Internal Assessment">Internal Assessment</option>
-                  <option value="External Assessment">External Assessment</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Marks Obtained</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="form-input"
-                  value={marksForm.marks}
-                  onChange={(e) => setMarksForm({ ...marksForm, marks: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Total Marks</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="form-input"
-                  value={marksForm.totalMarks}
-                  onChange={(e) => setMarksForm({ ...marksForm, totalMarks: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Class</label>
-                <select
-                  className="form-select"
-                  value={marksForm.classId}
-                  onChange={(e) => setMarksForm({ ...marksForm, classId: e.target.value })}
-                  required
-                >
-                  <option value="">Select Class</option>
-                  {classes.length === 0 ? (
-                    <option value="" disabled>No classes available. Please create a class first.</option>
-                  ) : (
-                    classes.map(cls => (
+            <div className="modal-body-modern">
+              <form onSubmit={handleAddMarks}>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Student</label>
+                  <select
+                    className="form-select-modern"
+                    value={marksForm.studentId}
+                    onChange={(e) => setMarksForm({ ...marksForm, studentId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Student</option>
+                    {students.map(student => (
+                      <option key={student.id} value={student.id}>{student.name || student.email}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Subject</label>
+                  <input
+                    type="text"
+                    className="form-input-modern"
+                    value={marksForm.subject}
+                    onChange={(e) => setMarksForm({ ...marksForm, subject: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Exam Type *</label>
+                  <select
+                    className="form-select-modern"
+                    value={marksForm.examType}
+                    onChange={(e) => setMarksForm({ ...marksForm, examType: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Exam Type</option>
+                    <option value="Quiz">Quiz</option>
+                    <option value="Midterm">Midterm</option>
+                    <option value="Final">Final</option>
+                    <option value="Assignment">Assignment</option>
+                    <option value="Project">Project</option>
+                    <option value="Practical">Practical</option>
+                    <option value="Internal Assessment">Internal Assessment</option>
+                    <option value="External Assessment">External Assessment</option>
+                  </select>
+                </div>
+                <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                  <div className="form-group-modern" style={{ marginBottom: 0 }}>
+                    <label className="form-label-modern">Marks Obtained</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="form-input-modern"
+                      value={marksForm.marks}
+                      onChange={(e) => setMarksForm({ ...marksForm, marks: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group-modern" style={{ marginBottom: 0 }}>
+                    <label className="form-label-modern">Total Marks</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="form-input-modern"
+                      value={marksForm.totalMarks}
+                      onChange={(e) => setMarksForm({ ...marksForm, totalMarks: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-group-modern">
+                  <label className="form-label-modern">Class</label>
+                  <select
+                    className="form-select-modern"
+                    value={marksForm.classId}
+                    onChange={(e) => setMarksForm({ ...marksForm, classId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Class</option>
+                    {classes.map(cls => (
                       <option key={cls.id} value={cls.id}>
                         {cls.name} {cls.section ? `- ${cls.section}` : ''} {cls.grade ? `(Grade ${cls.grade})` : ''}
                       </option>
-                    ))
-                  )}
-                </select>
-                {classes.length === 0 && (
-                  <small style={{ color: 'var(--warning-color)', display: 'block', marginTop: '0.5rem' }}>
-                    ⚠️ No classes found. Please create a class in the Admin dashboard first.
-                  </small>
-                )}
-              </div>
-              <div className="flex gap-2" style={{ justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowMarksModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Add Marks
-                </button>
-              </div>
-            </form>
+                    ))}
+                  </select>
+                </div>
+                <div className="modal-footer-modern" style={{ padding: 0, marginTop: '2rem', background: 'transparent', border: 'none' }}>
+                  <button type="button" className="teacher-action-btn-modern btn-secondary" onClick={() => setShowMarksModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="teacher-action-btn-modern btn-primary">
+                    <FiCheck style={{ marginRight: '0.5rem' }} /> Save Marks
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Day Attendance Modal */}
       {showDayAttendanceModal && (
-        <div className="modal-overlay" onClick={() => setShowDayAttendanceModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
-            <div className="modal-header">
-              <h3 className="modal-title">
-                Attendance for {dayAttendanceData.date ? format(new Date(dayAttendanceData.date), 'MMMM dd, yyyy') : ''}
+        <div className="modal-overlay animate-fade-in" onClick={() => setShowDayAttendanceModal(false)}>
+          <div className="modal-modern animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <div className="modal-header-modern">
+              <h3 className="modal-title-modern">
+                Attendance for {dayAttendanceData.date ? safeFormat(dayAttendanceData.date, 'MMMM dd, yyyy') : ''}
               </h3>
-              <button className="modal-close" onClick={() => setShowDayAttendanceModal(false)}>
+              <button className="modal-close-modern" onClick={() => setShowDayAttendanceModal(false)}>
                 <FiX size={24} />
               </button>
             </div>
-            <div className="modal-body">
+            <div className="modal-body-modern">
               {dayAttendanceData.students.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'var(--bg-color)', borderRadius: '1rem' }}>
                   <FiCalendar size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
                   <p>No attendance records found for this date.</p>
-                  <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                    Students may not have been marked present on this day.
-                  </p>
                 </div>
               ) : (
                 <div>
                   <div style={{
-                    marginBottom: '1rem',
-                    padding: '0.75rem',
-                    background: 'var(--success-color-light, #d1fae5)',
-                    borderRadius: '0.5rem',
+                    marginBottom: '1.5rem',
+                    padding: '1rem',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    borderRadius: '0.75rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem'
+                    gap: '0.75rem',
+                    border: '1px solid rgba(16, 185, 129, 0.2)'
                   }}>
                     <FiCheckCircle size={20} style={{ color: 'var(--success-color)' }} />
-                    <span style={{ fontWeight: 600, color: 'var(--success-color)' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--success-color)' }}>
                       {dayAttendanceData.students.length} student{dayAttendanceData.students.length !== 1 ? 's' : ''} present
                     </span>
                   </div>
-                  <div className="table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                    <table className="table">
+                  <div className="modern-table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    <table className="modern-table">
                       <thead>
                         <tr>
                           <th>Student ID</th>
-                          <th>Name</th>
+                          <th>Full Name</th>
                           <th>Status</th>
                         </tr>
                       </thead>
                       <tbody>
                         {dayAttendanceData.students.map((student, index) => (
                           <tr key={student.id || index}>
-                            <td>{student.studentId}</td>
+                            <td style={{ fontWeight: 700 }}>{student.studentId}</td>
                             <td>{student.name}</td>
                             <td>
-                              <span className="badge badge-success">
+                              <span className="status-indicator success">
                                 <FiCheck size={14} /> Present
                               </span>
                             </td>
@@ -1454,9 +1425,9 @@ const TeacherDashboard = () => {
                 </div>
               )}
             </div>
-            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem' }}>
-              <button className="btn btn-secondary" onClick={() => setShowDayAttendanceModal(false)}>
-                Close
+            <div className="modal-footer-modern">
+              <button className="teacher-action-btn-modern btn-secondary" onClick={() => setShowDayAttendanceModal(false)}>
+                Close Record
               </button>
             </div>
           </div>

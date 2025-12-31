@@ -127,17 +127,21 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header animate-fade-in-down">
-          <div className="auth-logo-container">
-            <img src="/logo.jpeg" alt="SmartShala Logo" className="auth-logo" onError={(e) => { e.target.style.display = 'none'; }} />
-            <div className="auth-logo-text">
-              <h1>SmartShala</h1>
-              <p className="auth-tagline">Simple Tools. Strong Schools.</p>
+    <div className="auth-container" style={{ background: 'var(--bg-color)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div className="auth-card animate-scale-in" style={{ width: '100%', maxWidth: '550px', background: 'white', borderRadius: '1.5rem', padding: '3rem', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)' }}>
+        <div className="auth-header animate-fade-in-down" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div className="auth-logo-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
+            <img
+              src="/logo.jpeg"
+              alt="SmartShala Logo"
+              className="auth-logo animate-scale-in"
+              style={{ height: '70px', borderRadius: '1rem', border: '2px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}
+            />
+            <div className="auth-logo-text" style={{ textAlign: 'left' }}>
+              <h1 style={{ fontSize: '2.4rem', fontWeight: 950, color: 'var(--primary-dark)', letterSpacing: '-0.05em', lineHeight: 1 }}>SmartShala</h1>
+              <p className="auth-tagline" style={{ color: 'var(--text-secondary)', fontWeight: 700, fontSize: '0.95rem' }}>Institutional Portal Access</p>
             </div>
           </div>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Create your account</p>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -323,18 +327,19 @@ const Register = () => {
 
           <button
             type="submit"
-            className="btn btn-primary btn-block"
+            className="teacher-action-btn-modern btn-primary btn-block"
             disabled={loading}
+            style={{ width: '100%', justifyContent: 'center', padding: '1rem', marginTop: '1.5rem', fontSize: '1rem' }}
           >
             <FiUserPlus size={18} />
-            {loading ? 'Creating account...' : 'Register'}
+            {loading ? 'Creating account...' : 'Finalize Registration'}
           </button>
         </form>
 
-        <div className="auth-footer">
-          <p>
-            Already have an account?{' '}
-            <Link to="/login">Sign in here</Link>
+        <div className="auth-footer" style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            Already registered?{' '}
+            <Link to="/login" style={{ color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'none' }}>Sign in here</Link>
           </p>
         </div>
       </div>

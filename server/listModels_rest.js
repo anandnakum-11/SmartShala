@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import fetch from "node-fetch";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,8 +10,11 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 async function listModels() {
-    // Manually test the other key
-    const apiKey = "AIzaSyCR3yWezE6EKCLYRwf2K_5jn_7a5q5tQFs";
+    const apiKey = process.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+        console.error("❌ No API key found in .env");
+        return;
+    }
     console.log(`Checking models for key starting with ${apiKey.substring(0, 10)}...`);
 
     try {
@@ -22,8 +26,18 @@ async function listModels() {
             return;
         }
 
-        console.log("✅ FULL RAW DATA:");
-        console.log(JSON.stringify(data, null, 2));
+        if (data.models) {
+            let output = "";
+            data.models.forEach(m => {
+                if (m.supportedGenerationMethods.includes("generateContent")) {
+                    output += `${m.name}\n`;
+                }
+            });
+            fs.writeFileSync("models.txt", output);
+            console.log("✅ Models written to models.txt");
+        } else {
+            console.log("No models found or unexpected response:", data);
+        }
     } catch (err) {
         console.error("❌ Connection failed:", err.message);
     }
