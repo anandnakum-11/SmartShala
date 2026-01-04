@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiMail, FiLock, FiUser, FiUserPlus } from 'react-icons/fi';
 import { generateIdByRole, getIdFieldName } from '../utils/idGenerator';
+import Snowfall from '../components/Snowfall';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -23,7 +24,6 @@ const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Auto-generate ID on mount and when role changes
   useEffect(() => {
     const generateId = async () => {
       setGeneratingId(true);
@@ -77,7 +77,6 @@ const Register = () => {
         return;
       }
 
-      // For parent role, child email or student ID is compulsory
       if (formData.role === 'parent') {
         if (!formData.childEmail && !formData.childStudentId) {
           setError('Child email or Student ID is required for parent registration.');
@@ -91,7 +90,6 @@ const Register = () => {
         [idFieldName]: userId
       };
 
-      // Store child information for parent
       if (formData.role === 'parent') {
         if (formData.childEmail) {
           additionalData.childEmail = formData.childEmail;
@@ -127,35 +125,45 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container" style={{ background: 'var(--bg-color)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="auth-card animate-scale-in" style={{ width: '100%', maxWidth: '550px', background: 'white', borderRadius: '1.5rem', padding: '3rem', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)' }}>
-        <div className="auth-header animate-fade-in-down" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+    <div className="auth-glass-container">
+      <Snowfall />
+      {/* Background Shapes */}
+      <div className="glass-shape glass-shape-1"></div>
+      <div className="glass-shape glass-shape-2"></div>
+      <div className="glass-shape glass-shape-3"></div>
+
+      <div className="glass-card-form animate-scale-in" style={{ maxWidth: '550px' }}>
+        <div className="auth-header animate-fade-in-down" style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div className="auth-logo-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
             <img
               src="/logo.jpeg"
               alt="SmartShala Logo"
               className="auth-logo animate-scale-in"
-              style={{ height: '70px', borderRadius: '1rem', border: '2px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}
+              style={{ height: '70px', borderRadius: '1rem', border: '2px solid rgba(255,255,255,0.2)', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)' }}
             />
-            <div className="auth-logo-text" style={{ textAlign: 'left' }}>
-              <h1 style={{ fontSize: '2.4rem', fontWeight: 950, color: 'var(--primary-dark)', letterSpacing: '-0.05em', lineHeight: 1 }}>SmartShala</h1>
-              <p className="auth-tagline" style={{ color: 'var(--text-secondary)', fontWeight: 700, fontSize: '0.95rem' }}>Institutional Portal Access</p>
+            <div className="auth-logo-text glass-logo-text" style={{ textAlign: 'left' }}>
+              <h1 style={{ fontSize: '2.4rem', fontWeight: 950, letterSpacing: '-0.05em', lineHeight: 1 }}>SmartShala</h1>
+              <p className="glass-text-secondary" style={{ fontWeight: 700, fontSize: '0.95rem' }}>Institutional Portal Access</p>
             </div>
           </div>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && (
+          <div className="alert alert-error" style={{ background: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)', color: '#fca5a5' }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label glass-label">
               <FiUser size={18} />
               Full Name
             </label>
             <input
               type="text"
               name="name"
-              className="form-input"
+              className="form-input glass-input"
               value={formData.name}
               onChange={handleChange}
               required
@@ -164,14 +172,14 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label glass-label">
               <FiMail size={18} />
               Email Address
             </label>
             <input
               type="email"
               name="email"
-              className="form-input"
+              className="form-input glass-input"
               value={formData.email}
               onChange={handleChange}
               required
@@ -180,166 +188,150 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Role</label>
+            <label className="form-label glass-label">Role</label>
             <select
               name="role"
-              className="form-select"
+              className="form-select glass-input"
               value={formData.role}
               onChange={handleChange}
               required
+              style={{ color: 'var(--text-primary)' }} // Ensure dropdown options are readable if system select is used
             >
-              <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
-              <option value="parent">Parent</option>
+              <option value="student" style={{ color: 'black' }}>Student</option>
+              <option value="teacher" style={{ color: 'black' }}>Teacher</option>
+              <option value="parent" style={{ color: 'black' }}>Parent</option>
             </select>
           </div>
 
           {formData.role === 'student' && (
-            <>
-              <div className="form-group">
-                <label className="form-label">Student ID (Auto-generated)</label>
-                <input
-                  type="text"
-                  name="studentId"
-                  className="form-input"
-                  value={formData.studentId}
-                  onChange={handleChange}
-                  required
-                  placeholder={generatingId ? "Generating ID..." : "Student ID will be auto-generated"}
-                  readOnly
-                  disabled={generatingId}
-                  style={{ backgroundColor: 'var(--bg-secondary)', cursor: 'not-allowed' }}
-                />
-                <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                  Your Student ID: {formData.studentId || 'Generating...'}. Save this for login.
-                </small>
-              </div>
-            </>
+            <div className="form-group">
+              <label className="form-label glass-label">Student ID</label>
+              <input
+                type="text"
+                name="studentId"
+                className="form-input glass-input"
+                value={formData.studentId}
+                onChange={handleChange}
+                required
+                readOnly
+                disabled={generatingId}
+                style={{ opacity: 0.7, cursor: 'not-allowed' }}
+              />
+              <small className="glass-text-secondary" style={{ fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                Your Student ID: {formData.studentId || 'Generating...'}
+              </small>
+            </div>
           )}
 
           {formData.role === 'parent' && (
             <>
               <div className="form-group">
-                <label className="form-label">Parent ID (Auto-generated)</label>
+                <label className="form-label glass-label">Parent ID</label>
                 <input
                   type="text"
                   name="parentId"
-                  className="form-input"
+                  className="form-input glass-input"
                   value={formData.parentId}
                   onChange={handleChange}
                   required
-                  placeholder={generatingId ? "Generating ID..." : "Parent ID will be auto-generated"}
                   readOnly
                   disabled={generatingId}
-                  style={{ backgroundColor: 'var(--bg-secondary)', cursor: 'not-allowed' }}
+                  style={{ opacity: 0.7, cursor: 'not-allowed' }}
                 />
-                <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                  Your Parent ID: {formData.parentId || 'Generating...'}. Save this for login.
-                </small>
               </div>
               <div className="form-group">
-                <label className="form-label">
-                  Child's Email Address <span style={{ color: 'red' }}>*</span>
+                <label className="form-label glass-label">
+                  Child's Email <span style={{ color: '#fca5a5' }}>*</span>
                 </label>
                 <input
                   type="email"
                   name="childEmail"
-                  className="form-input"
+                  className="form-input glass-input"
                   value={formData.childEmail}
                   onChange={handleChange}
-                  placeholder="Enter your child's email address"
+                  placeholder="Enter child's email"
                 />
-                <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                  Required: Enter either child's email OR student ID below
-                </small>
               </div>
               <div className="form-group">
-                <label className="form-label">
-                  Child's Student ID <span style={{ color: 'red' }}>*</span>
+                <label className="form-label glass-label">
+                  Child's ID <span style={{ color: '#fca5a5' }}>*</span>
                 </label>
                 <input
                   type="text"
                   name="childStudentId"
-                  className="form-input"
+                  className="form-input glass-input"
                   value={formData.childStudentId}
                   onChange={handleChange}
-                  placeholder="Enter your child's Student ID (e.g., STU-1)"
+                  placeholder="Enter child's Student ID"
                 />
-                <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                  Required: Enter either child's email OR student ID above
-                </small>
               </div>
             </>
           )}
 
           {formData.role === 'teacher' && (
             <div className="form-group">
-              <label className="form-label">Teacher ID (Auto-generated)</label>
+              <label className="form-label glass-label">Teacher ID</label>
               <input
                 type="text"
                 name="teacherId"
-                className="form-input"
+                className="form-input glass-input"
                 value={formData.teacherId}
                 onChange={handleChange}
                 required
-                placeholder={generatingId ? "Generating ID..." : "Teacher ID will be auto-generated"}
                 readOnly
                 disabled={generatingId}
-                style={{ backgroundColor: 'var(--bg-secondary)', cursor: 'not-allowed' }}
+                style={{ opacity: 0.7, cursor: 'not-allowed' }}
               />
-              <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                Your Teacher ID: {formData.teacherId || 'Generating...'}. Save this for login.
-              </small>
             </div>
           )}
 
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label glass-label">
               <FiLock size={18} />
               Password
             </label>
             <input
               type="password"
               name="password"
-              className="form-input"
+              className="form-input glass-input"
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="Enter password (min 6 characters)"
+              placeholder="Min 6 chars"
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label glass-label">
               <FiLock size={18} />
               Confirm Password
             </label>
             <input
               type="password"
               name="confirmPassword"
-              className="form-input"
+              className="form-input glass-input"
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              placeholder="Confirm your password"
+              placeholder="Confirm password"
             />
           </div>
 
           <button
             type="submit"
-            className="teacher-action-btn-modern btn-primary btn-block"
+            className="btn btn-primary btn-block"
             disabled={loading}
-            style={{ width: '100%', justifyContent: 'center', padding: '1rem', marginTop: '1.5rem', fontSize: '1rem' }}
+            style={{ width: '100%', justifyContent: 'center', padding: '1rem', marginTop: '1.5rem', fontSize: '1rem', background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)', border: 'none' }}
           >
             <FiUserPlus size={18} />
             {loading ? 'Creating account...' : 'Finalize Registration'}
           </button>
         </form>
 
-        <div className="auth-footer" style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+        <div className="auth-footer glass-footer" style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>
             Already registered?{' '}
-            <Link to="/login" style={{ color: 'var(--primary-color)', fontWeight: 700, textDecoration: 'none' }}>Sign in here</Link>
+            <Link to="/login" style={{ fontWeight: 'bold' }}>Sign in here</Link>
           </p>
         </div>
       </div>
@@ -348,5 +340,3 @@ const Register = () => {
 };
 
 export default Register;
-
-

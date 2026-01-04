@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { FiAlertCircle, FiLogOut } from 'react-icons/fi';
+
 import { useAuth } from '../context/AuthContext';
+import ThemeToggle from '../components/ThemeToggle';
 
 const Unauthorized = () => {
   const { logout } = useAuth();
@@ -12,8 +14,11 @@ const Unauthorized = () => {
   };
 
   return (
-    <div className="auth-container" style={{ background: 'var(--bg-color)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="auth-card animate-scale-in" style={{ width: '100%', maxWidth: '450px', background: 'white', borderRadius: '1.5rem', padding: '3rem', textAlign: 'center', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)' }}>
+    <div className="auth-container" style={{ background: 'var(--bg-color)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 10 }}>
+        <ThemeToggle />
+      </div>
+      <div className="auth-card animate-scale-in" style={{ width: '100%', maxWidth: '450px', background: 'var(--card-bg)', borderRadius: '1.5rem', padding: '3rem', textAlign: 'center', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)', backdropFilter: 'blur(10px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
           <img
             src="/logo.jpeg"

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { collection, getDocs, query, where, addDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -22,7 +23,14 @@ const StudentDashboard = () => {
       return 'N/A';
     }
   };
-  const [activeTab, setActiveTab] = useState('overview');
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab });
+  };
+
   const [assignments, setAssignments] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [marks, setMarks] = useState([]);
@@ -236,47 +244,7 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="tabs-container-modern">
-          <div className="tabs-list-modern">
-            <button
-              className={`tab-item-modern ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              <FiBarChart /> Overview
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'assignments' ? 'active' : ''}`}
-              onClick={() => setActiveTab('assignments')}
-            >
-              <FiClipboard /> Assignments
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'attendance' ? 'active' : ''}`}
-              onClick={() => setActiveTab('attendance')}
-            >
-              <FiCheckCircle /> Attendance
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'marks' ? 'active' : ''}`}
-              onClick={() => setActiveTab('marks')}
-            >
-              <FiUpload /> Marks
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'timetable' ? 'active' : ''}`}
-              onClick={() => setActiveTab('timetable')}
-            >
-              <FiCalendar /> Timetable
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'announcements' ? 'active' : ''}`}
-              onClick={() => setActiveTab('announcements')}
-            >
-              <FiBell /> Announcements
-            </button>
-          </div>
-        </div>
+
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
@@ -599,7 +567,7 @@ const StudentDashboard = () => {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                             {daySchedule.map(entry => (
                               <div key={entry.id} style={{
-                                background: 'white',
+                                background: 'var(--card-bg)',
                                 padding: '1rem',
                                 borderRadius: '0.75rem',
                                 borderLeft: '4px solid var(--primary-color)',
@@ -652,7 +620,7 @@ const StudentDashboard = () => {
                   <div key={announcement.id} className="card hover-scale" style={{ padding: '1.5rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '1rem', boxShadow: 'none' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                       <h4 style={{ margin: 0, color: 'var(--primary-dark)', fontWeight: 700, fontSize: '1.1rem' }}>{announcement.title}</h4>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'white', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', fontWeight: 600, border: '1px solid var(--border-color)' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--bg-color)', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', fontWeight: 600, border: '1px solid var(--border-color)' }}>
                         {announcement.createdAt ? safeFormat(announcement.createdAt, 'MMM dd, yyyy') : 'N/A'}
                       </div>
                     </div>

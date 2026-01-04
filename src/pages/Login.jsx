@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiMail, FiLock, FiLogIn, FiCheckCircle } from 'react-icons/fi';
+import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
 import { showToast } from '../components/ToastContainer';
+import Snowfall from '../components/Snowfall';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -36,14 +37,12 @@ const Login = () => {
       };
 
       showToast('Login successful! Redirecting...', 'success');
-      // Small delay for toast to show
       setTimeout(() => {
         navigate(getDashboardPath(role), { replace: true });
       }, 1000);
     } catch (err) {
       let errorMsg = err.message || 'Failed to login. Please check your credentials.';
 
-      // Handle Firebase configuration errors
       if (err.code === 'auth/invalid-api-key' || err.message?.includes('api-key-not-valid')) {
         errorMsg = 'Firebase configuration error: Invalid API Key. Please check your .env file.';
       } else if (err.code === 'auth/network-request-failed') {
@@ -52,8 +51,7 @@ const Login = () => {
 
       setError(errorMsg);
       showToast(errorMsg, 'error');
-      // Add shake animation to form
-      const form = document.querySelector('.auth-form');
+      const form = document.querySelector('.glass-card-form');
       if (form) {
         form.classList.add('shake-error');
         setTimeout(() => form.classList.remove('shake-error'), 500);
@@ -64,56 +62,64 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container" style={{ background: 'var(--bg-color)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="auth-card animate-scale-in" style={{ width: '100%', maxWidth: '480px', background: 'white', borderRadius: '1.5rem', padding: '3rem', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)' }}>
+    <div className="auth-glass-container">
+      <Snowfall />
+      {/* Background Shapes */}
+      <div className="glass-shape glass-shape-1"></div>
+      <div className="glass-shape glass-shape-2"></div>
+      <div className="glass-shape glass-shape-3"></div>
+
+
+
+      <div className="glass-card-form animate-scale-in">
         <div className="auth-header animate-fade-in-down" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div className="auth-logo-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
             <img
               src="/logo.jpeg"
               alt="SmartShala Logo"
               className="auth-logo animate-scale-in"
-              style={{ height: '70px', borderRadius: '1rem', border: '2px solid var(--border-color)', boxShadow: 'var(--shadow-md)' }}
+              style={{ height: '70px', borderRadius: '1rem', border: '2px solid rgba(255,255,255,0.2)', boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)' }}
             />
-            <div className="auth-logo-text" style={{ textAlign: 'left' }}>
-              <h1 style={{ fontSize: '2.4rem', fontWeight: 950, color: 'var(--primary-dark)', letterSpacing: '-0.05em', lineHeight: 1 }}>SmartShala</h1>
-              <p className="auth-tagline" style={{ color: 'var(--text-secondary)', fontWeight: 700, fontSize: '0.95rem' }}>Institutional Portal Access</p>
+            <div className="auth-logo-text glass-logo-text" style={{ textAlign: 'left' }}>
+              <h1 style={{ fontSize: '2.4rem', fontWeight: 950, letterSpacing: '-0.05em', lineHeight: 1 }}>SmartShala</h1>
+              <p className="glass-text-secondary" style={{ fontWeight: 700, fontSize: '0.95rem' }}>Institutional Portal Access</p>
             </div>
           </div>
         </div>
 
         {error && (
-          <div className={`alert alert-error animate-slide-in-right ${error ? 'shake-error' : ''}`}>
+          <div className={`alert alert-error animate-slide-in-right ${error ? 'shake-error' : ''}`} style={{ background: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)', color: '#fca5a5' }}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="auth-form animate-fade-in-up">
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label glass-label">
               <FiMail size={18} />
               Email Address or ID
             </label>
             <input
               type="text"
-              className="form-input"
+              className="form-input glass-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="Enter your email or ID (STU-xxx, PAR-xxx, TEA-xxx)"
+              placeholder="Enter your email or ID"
             />
-            <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+            <small className="glass-text-secondary" style={{ fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
               You can login with your email address or your assigned ID
             </small>
           </div>
 
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label glass-label">
               <FiLock size={18} />
               Password
             </label>
             <input
               type="password"
-              className="form-input"
+              className="form-input glass-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -125,16 +131,17 @@ const Login = () => {
             type="submit"
             className="btn btn-primary btn-block"
             disabled={loading}
+            style={{ marginTop: '1.5rem', background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)', border: 'none', padding: '1rem', fontSize: '1.1rem' }}
           >
             <FiLogIn size={18} />
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <div className="auth-footer">
-          <p>
+        <div className="auth-footer glass-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)' }}>
             Don't have an account?{' '}
-            <Link to="/register">Register here</Link>
+            <Link to="/register" style={{ fontWeight: 'bold' }}>Register here</Link>
           </p>
         </div>
       </div>

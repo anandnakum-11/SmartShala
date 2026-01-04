@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +12,7 @@ import ProgressBar from '../components/ProgressBar';
 
 const TeacherDashboard = () => {
   const { currentUser } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Safe date formatting utility
   const safeFormat = (date, formatStr) => {
@@ -24,7 +26,12 @@ const TeacherDashboard = () => {
       return 'N/A';
     }
   };
-  const [activeTab, setActiveTab] = useState('overview');
+
+  const activeTab = searchParams.get('tab') || 'overview';
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab });
+  };
+
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [attendance, setAttendance] = useState([]);
@@ -47,6 +54,9 @@ const TeacherDashboard = () => {
     class: '',
     section: 'All'
   });
+  // New states for separated functionality
+  const [filterClassName, setFilterClassName] = useState('');
+  const [filterSection, setFilterSection] = useState('');
   const [filteredAttendance, setFilteredAttendance] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [editingAttendance, setEditingAttendance] = useState(false);
@@ -449,41 +459,7 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="tabs-container-modern">
-          <div className="tabs-list-modern">
-            <button
-              className={`tab-item-modern ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              <FiBarChart /> Overview
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'attendance' ? 'active' : ''}`}
-              onClick={() => setActiveTab('attendance')}
-            >
-              <FiCheckCircle /> Attendance
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'assignments' ? 'active' : ''}`}
-              onClick={() => setActiveTab('assignments')}
-            >
-              <FiClipboard /> Assignments
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'marks' ? 'active' : ''}`}
-              onClick={() => setActiveTab('marks')}
-            >
-              <FiUpload /> Marks
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'schedule' ? 'active' : ''}`}
-              onClick={() => setActiveTab('schedule')}
-            >
-              <FiCalendar /> My Schedule
-            </button>
-          </div>
-        </div>
+
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
@@ -613,14 +589,17 @@ const TeacherDashboard = () => {
                 <label>Select Class</label>
                 <select
                   className="filter-select"
-                  value={attendanceFilters.class}
+                  value={filterClassName}
                   onChange={(e) => {
-                    setAttendanceFilters({ ...attendanceFilters, class: e.target.value, section: 'All' });
+                    const newClass = e.target.value;
+                    setFilterClassName(newClass);
+                    setFilterSection('');
+                    setAttendanceFilters({ class: '', section: 'All' });
                   }}
                 >
                   <option value="">Choose Class...</option>
-                  {classes.map(cls => (
-                    <option key={cls.id} value={cls.id}>{cls.name} {cls.section ? `- ${cls.section}` : ''}</option>
+                  {['10', '11', '12'].map(name => (
+                    <option key={name} value={name}>{name}</option>
                   ))}
                 </select>
               </div>
@@ -628,25 +607,63 @@ const TeacherDashboard = () => {
                 <label>Select Section</label>
                 <select
                   className="filter-select"
-                  value={attendanceFilters.section}
-                  onChange={(e) => setAttendanceFilters({ ...attendanceFilters, section: e.target.value })}
-                  disabled={!attendanceFilters.class}
-                >
-                  <option value="All">All Sections</option>
-                  {(() => {
-                    let sectionsToShow = [];
-                    if (attendanceFilters.class) {
-                      const selectedClassObj = classes.find(c => c.id === attendanceFilters.class);
-                      if (selectedClassObj?.section) {
-                        sectionsToShow = [selectedClassObj.section];
-                      } else {
-                        sectionsToShow = [...new Set(classes.filter(c => c.section).map(c => c.section))];
-                      }
-                    } else {
-                      sectionsToShow = [...new Set(classes.filter(c => c.section).map(c => c.section))];
+                  value={filterSection}
+                  onChange={(e) => {
+                    const newSection = e.target.value;
+                    setFilterSection(newSection);
+
+                    // Robust finding logic for messy data (e.g. "10 - A - A")
+                    // We look for a class where the name *starts with* the selected class (e.g. "10")
+                    // AND the section matches or contains the selected section (e.g. "A")
+                    const selectedClassObj = classes.find(c => {
+                      // Normalize check: 
+                      // 1. Name is exactly the class (e.g. "10")
+                      // 2. Name starts with class + space or hyphen (e.g. "10 -", "10 ")
+                      const nameMatch = c.name === filterClassName ||
+                        c.name.startsWith(filterClassName + ' ') ||
+                        c.name.startsWith(filterClassName + '-');
+
+                      // Section check:
+                      // 1. Section is exactly matching
+                      // 2. Section contains the letter (e.g. "A" in "A - A")
+                      const sectionMatch = c.section === newSection ||
+                        (c.section && c.section.includes(newSection));
+
+                      return nameMatch && sectionMatch;
+                    });
+
+                    if (selectedClassObj) {
+                      setAttendanceFilters({
+                        class: selectedClassObj.id,
+                        section: newSection
+                      });
                     }
-                    return sectionsToShow.map((section, idx) => (
-                      <option key={idx} value={section}>{section}</option>
+                  }}
+                  disabled={!filterClassName}
+                >
+                  <option value="">Choose Section...</option>
+                  {(() => {
+                    // Find all sections available for this class name in the DB
+                    // Matches "11", "11-A", "11 - A" etc.
+                    const availableSections = classes
+                      .filter(c =>
+                        c.name === filterClassName ||
+                        c.name.startsWith(filterClassName + ' ') ||
+                        c.name.startsWith(filterClassName + '-')
+                      )
+                      .map(c => {
+                        // Extract section from class object if possible, or parse from name
+                        if (c.section) return c.section;
+                        // Try to parse from name if section field is missing (fallback)
+                        const parts = c.name.split('-');
+                        if (parts.length > 1) return parts[1].trim();
+                        return null;
+                      })
+                      .filter(s => s && ['A', 'B'].includes(s)); // Strict filter: only show A or B if they exist
+
+                    // Unique and Sort
+                    return [...new Set(availableSections)].sort().map(section => (
+                      <option key={section} value={section}>{section}</option>
                     ));
                   })()}
                 </select>
@@ -695,7 +712,7 @@ const TeacherDashboard = () => {
               {/* Attendance Table */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="modern-table-container" style={{ marginTop: 0 }}>
-                  <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
+                  <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)' }}>
                     <h4 style={{ margin: 0, fontWeight: 700 }}>Students List</h4>
                     {filteredAttendance.length > 0 && (
                       <button
@@ -778,8 +795,8 @@ const TeacherDashboard = () => {
           </div>
         )}
 
-        {/* Schedule Tab */}
-        {activeTab === 'schedule' && (
+        {/* Timetable Tab */}
+        {activeTab === 'timetable' && (
           <div className="tab-content-card">
             <div className="section-header-modern">
               <h3><FiClock className="icon-glow" /> My Weekly Schedule</h3>
@@ -792,8 +809,11 @@ const TeacherDashboard = () => {
                     timetables.forEach(t => {
                       if (t.schedule && t.schedule[day]) {
                         const matching = t.schedule[day].filter(entry =>
-                          (entry.teacherId && entry.teacherId === teacherProfile.teacherId) ||
-                          (entry.teacherId && entry.teacherId === currentUser.uid)
+                          // Match by teacher ID explicitly or by user UID
+                          (entry.teacherId && teacherProfile?.teacherId && entry.teacherId === teacherProfile.teacherId) ||
+                          (entry.teacherId && entry.teacherId === currentUser.uid) ||
+                          // Fallback: Check if teacher name matches (if ID is missing)
+                          (entry.teacher && teacherProfile?.name && entry.teacher === teacherProfile.name)
                         );
                         matching.forEach(m => {
                           myClasses.push({
@@ -819,7 +839,7 @@ const TeacherDashboard = () => {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                             {myClasses.map((entry, idx) => (
                               <div key={idx} style={{
-                                background: 'white',
+                                background: 'var(--bg-color)',
                                 padding: '1rem',
                                 borderRadius: '0.75rem',
                                 borderLeft: '4px solid var(--primary-color)',
@@ -1099,7 +1119,7 @@ const TeacherDashboard = () => {
                       <div
                         key={student.id}
                         className="stagger-item"
-                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', borderRadius: '0.75rem', transition: 'background 0.2s', background: 'white', marginBottom: '0.5rem', boxShadow: 'var(--shadow-sm)' }}
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', borderRadius: '0.75rem', transition: 'background 0.2s', background: 'var(--card-bg)', marginBottom: '0.5rem', boxShadow: 'var(--shadow-sm)' }}
                       >
                         <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>{student.name || student.email}</span>
                         <div className="attendance-toggle" style={{ display: 'flex', gap: '0.5rem' }}>
@@ -1153,14 +1173,14 @@ const TeacherDashboard = () => {
       {/* Assignment Modal */}
       {showAssignmentModal && (
         <div className="modal-overlay animate-fade-in" onClick={() => setShowAssignmentModal(false)}>
-          <div className="modal-modern animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
-            <div className="modal-header-modern">
+          <div className="modal-modern animate-slide-up" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+            <div className="modal-header-modern" style={{ flexShrink: 0 }}>
               <h3 className="modal-title-modern">Upload Assignment</h3>
               <button className="modal-close-modern" onClick={() => setShowAssignmentModal(false)}>
                 <FiX size={24} />
               </button>
             </div>
-            <div className="modal-body-modern">
+            <div className="modal-body-modern" style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
               <form onSubmit={handleUploadAssignment}>
                 {error && (
                   <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>
@@ -1234,7 +1254,7 @@ const TeacherDashboard = () => {
                     </label>
                   </div>
                 </div>
-                <div className="modal-footer-modern" style={{ padding: 0, marginTop: '2rem', background: 'transparent', border: 'none' }}>
+                <div className="modal-footer-modern" style={{ padding: 0, marginTop: '2rem', background: 'transparent', border: 'none', flexShrink: 0 }}>
                   <button
                     type="button"
                     className="teacher-action-btn-modern btn-secondary"

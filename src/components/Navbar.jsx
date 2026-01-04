@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiLogIn, FiUserPlus, FiLogOut, FiLayout } from 'react-icons/fi';
+import ThemeToggle from './ThemeToggle';
 import { useEffect, useState } from 'react';
 
 const Navbar = () => {
@@ -81,6 +82,7 @@ const Navbar = () => {
               </Link>
             </>
           )}
+          <ThemeToggle />
         </div>
       </div>
     </nav>

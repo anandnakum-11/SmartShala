@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +10,7 @@ import SummaryCard from '../components/SummaryCard';
 
 const ParentDashboard = () => {
   const { currentUser } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Safe date formatting utility
   const safeFormat = (date, formatStr) => {
@@ -22,7 +24,12 @@ const ParentDashboard = () => {
       return 'N/A';
     }
   };
-  const [activeTab, setActiveTab] = useState('overview');
+
+  const activeTab = searchParams.get('tab') || 'overview';
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab });
+  };
+
   const [student, setStudent] = useState(null);
   const [attendance, setAttendance] = useState([]);
   const [marks, setMarks] = useState([]);
@@ -158,34 +165,7 @@ const ParentDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="tabs-container-modern">
-          <div className="tabs-list-modern">
-            <button
-              className={`tab-item-modern ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              <FiBarChart /> Overview
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'attendance' ? 'active' : ''}`}
-              onClick={() => setActiveTab('attendance')}
-            >
-              <FiCheckCircle /> Attendance
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'marks' ? 'active' : ''}`}
-              onClick={() => setActiveTab('marks')}
-            >
-              <FiClipboard /> Performance
-            </button>
-            <button
-              className={`tab-item-modern ${activeTab === 'announcements' ? 'active' : ''}`}
-              onClick={() => setActiveTab('announcements')}
-            >
-              <FiBell /> Notices
-            </button>
-          </div>
-        </div>
+
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
@@ -360,7 +340,7 @@ const ParentDashboard = () => {
                           {announcement.message}
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'white', padding: '0.4rem 0.75rem', borderRadius: '0.6rem', fontWeight: 700, border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--bg-color)', padding: '0.4rem 0.75rem', borderRadius: '0.6rem', fontWeight: 700, border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <FiCalendar size={14} /> {announcement.createdAt ? safeFormat(announcement.createdAt, 'MMM dd, yyyy') : 'N/A'}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-color)', fontSize: '0.8rem', fontWeight: 700 }}>

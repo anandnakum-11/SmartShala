@@ -77,7 +77,7 @@ const Home = () => {
               <Link to="/register" className="teacher-action-btn-modern btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
                 Initiate Enrollment <FiArrowRight />
               </Link>
-              <a href="#features" className="teacher-action-btn-modern" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', background: 'white', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
+              <a href="#features" className="teacher-action-btn-modern" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>
                 Explore Features
               </a>
             </div>
@@ -86,7 +86,7 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" style={{ padding: '6rem 0', background: 'white' }}>
+      <section id="features" style={{ padding: '6rem 0', background: 'var(--card-bg)' }}>
         <div className="container">
           <div className="text-center" style={{ marginBottom: '5rem' }}>
             <h2 style={{ fontSize: '2.5rem', fontWeight: 850, color: 'var(--primary-dark)', marginBottom: '1.25rem' }}>Integrated Infrastructure</h2>
@@ -107,10 +107,13 @@ const Home = () => {
                 <div className="icon-circle" style={{
                   width: '56px',
                   height: '56px',
-                  background: 'white',
+                  background: 'var(--card-bg)',
                   borderRadius: '1rem',
                   color: feature.color,
-                  boxShadow: 'var(--shadow-sm)'
+                  boxShadow: 'var(--shadow-sm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}>
                   {feature.icon}
                 </div>

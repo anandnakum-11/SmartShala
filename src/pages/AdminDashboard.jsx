@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { FiUsers, FiBook, FiUserPlus, FiPlus, FiEdit, FiTrash2, FiX, FiBell, FiBarChart, FiTrendingUp, FiEye, FiClipboard, FiCalendar, FiClock, FiCheck } from 'react-icons/fi';
@@ -9,6 +10,8 @@ import { showToast } from '../components/ToastContainer';
 import { generateIdByRole, getIdFieldName } from '../utils/idGenerator';
 
 const AdminDashboard = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Safe date formatting utility
   const safeFormat = (date, formatStr) => {
     try {
@@ -21,7 +24,12 @@ const AdminDashboard = () => {
       return 'N/A';
     }
   };
-  const [activeTab, setActiveTab] = useState('overview');
+
+  const activeTab = searchParams.get('tab') || 'overview';
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab });
+  };
+
   const [users, setUsers] = useState([]);
   const [classes, setClasses] = useState([]);
   const [timetables, setTimetables] = useState([]);
@@ -488,27 +496,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="tabs-container-modern" style={{ marginBottom: '2.5rem' }}>
-          <div className="tabs-list-modern">
-            {[
-              { id: 'overview', label: 'Overview', icon: <FiBarChart /> },
-              { id: 'users', label: 'Users', icon: <FiUsers /> },
-              { id: 'classes', label: 'Classes', icon: <FiBook /> },
-              { id: 'announcements', label: 'Announcements', icon: <FiBell /> },
-              { id: 'timetable', label: 'Timetable', icon: <FiCalendar /> }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                className={`tab-item-modern ${activeTab === tab.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
@@ -559,13 +547,13 @@ const AdminDashboard = () => {
                   </h3>
                 </div>
                 <div className="stats-breakdown" style={{ padding: '1.5rem' }}>
-                  <div className="stat-breakdown-item" style={{ background: 'white', padding: '1rem', borderRadius: '0.75rem', marginBottom: '0.75rem', border: '1px solid var(--border-color)' }}>
+                  <div className="stat-breakdown-item" style={{ background: 'var(--card-bg)', padding: '1rem', borderRadius: '0.75rem', marginBottom: '0.75rem', border: '1px solid var(--border-color)' }}>
                     <div className="stat-breakdown-label" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Parents Joined</div>
                     <div className="stat-breakdown-value" style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary-dark)' }}>
                       {users.filter(u => u.role === 'parent').length}
                     </div>
                   </div>
-                  <div className="stat-breakdown-item" style={{ background: 'white', padding: '1rem', borderRadius: '0.75rem', marginBottom: '0.75rem', border: '1px solid var(--border-color)' }}>
+                  <div className="stat-breakdown-item" style={{ background: 'var(--card-bg)', padding: '1rem', borderRadius: '0.75rem', marginBottom: '0.75rem', border: '1px solid var(--border-color)' }}>
                     <div className="stat-breakdown-label" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Live Announcements</div>
                     <div className="stat-breakdown-value" style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f59e0b' }}>{announcements.length}</div>
                   </div>
@@ -589,12 +577,12 @@ const AdminDashboard = () => {
                       setActiveTab('users');
                       setShowUserModal(true);
                     }}
-                    style={{ background: 'white', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
+                    style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
                   >
                     <div className="icon-circle" style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--primary-color)' }}>
                       <FiUserPlus size={24} />
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Enroll User</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Enroll User</span>
                   </button>
                   <button
                     className="quick-action-btn hover-scale"
@@ -602,12 +590,12 @@ const AdminDashboard = () => {
                       setActiveTab('classes');
                       setShowClassModal(true);
                     }}
-                    style={{ background: 'white', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
+                    style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
                   >
                     <div className="icon-circle" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
                       <FiPlus size={24} />
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Open Class</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Open Class</span>
                   </button>
                   <button
                     className="quick-action-btn hover-scale"
@@ -615,24 +603,24 @@ const AdminDashboard = () => {
                       setActiveTab('announcements');
                       setShowAnnouncementModal(true);
                     }}
-                    style={{ background: 'white', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
+                    style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
                   >
                     <div className="icon-circle" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                       <FiBell size={24} />
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Post Notice</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Post Notice</span>
                   </button>
                   <button
                     className="quick-action-btn hover-scale"
                     onClick={() => {
                       setActiveTab('timetable');
                     }}
-                    style={{ background: 'white', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
+                    style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}
                   >
                     <div className="icon-circle" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                       <FiCalendar size={24} />
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Timetable</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Timetable</span>
                   </button>
                 </div>
               </div>
@@ -867,7 +855,7 @@ const AdminDashboard = () => {
                           {announcement.message}
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'white', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', fontWeight: 600, border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'var(--bg-color)', padding: '0.3rem 0.6rem', borderRadius: '0.5rem', fontWeight: 600, border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                             <FiCalendar size={14} /> {announcement.createdAt ? format(new Date(announcement.createdAt), 'MMM dd, yyyy') : 'N/A'}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-color)', fontSize: '0.8rem', fontWeight: 600 }}>
@@ -950,7 +938,7 @@ const AdminDashboard = () => {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {daySchedule.map(entry => (
                               <div key={entry.id} style={{
-                                background: 'white',
+                                background: 'var(--card-bg)',
                                 padding: '1rem',
                                 borderRadius: '1rem',
                                 borderLeft: '4px solid var(--primary-color)',
@@ -1188,7 +1176,7 @@ const AdminDashboard = () => {
                       className="form-input-modern"
                       value={formData.studentId}
                       readOnly
-                      style={{ background: 'white', fontWeight: 700, pointerEvents: 'none' }}
+                      style={{ background: 'var(--bg-color)', fontWeight: 700, pointerEvents: 'none', color: 'var(--text-primary)' }}
                     />
                     <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.5rem', display: 'block' }}>
                       ID is autogenerated for data integrity.
@@ -1205,7 +1193,7 @@ const AdminDashboard = () => {
                         className="form-input-modern"
                         value={formData.parentId}
                         readOnly
-                        style={{ background: 'white', fontWeight: 700, pointerEvents: 'none' }}
+                        style={{ background: 'var(--bg-color)', fontWeight: 700, pointerEvents: 'none', color: 'var(--text-primary)' }}
                       />
                     </div>
                     <div className="form-group-modern animate-fade-in">
@@ -1240,7 +1228,7 @@ const AdminDashboard = () => {
                       className="form-input-modern"
                       value={formData.teacherId}
                       readOnly
-                      style={{ background: 'white', fontWeight: 700, pointerEvents: 'none' }}
+                      style={{ background: 'var(--bg-color)', fontWeight: 700, pointerEvents: 'none', color: 'var(--text-primary)' }}
                     />
                   </div>
                 )}

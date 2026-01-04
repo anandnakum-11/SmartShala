@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Chatbot from './components/Chatbot';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -35,7 +36,7 @@ function App() {
   };
 
   return (
-    <>
+    <ThemeProvider>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
@@ -88,7 +89,8 @@ function App() {
         />
       </Routes>
       <Chatbot />
-    </>
+    </ThemeProvider >
+
   );
 }
 

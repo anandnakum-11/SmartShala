@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiHome, FiLogOut, FiUser, FiSearch, FiBell } from 'react-icons/fi';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { FiMenu, FiX, FiHome, FiLogOut, FiUser, FiSearch, FiBell, FiBarChart, FiClipboard, FiCheckCircle, FiUpload, FiCalendar, FiUsers, FiBook } from 'react-icons/fi';
+import ThemeToggle from './ThemeToggle';
 
 const Layout = ({ children }) => {
   const { currentUser, userRole, logout } = useAuth();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Initialize based on screen width (safe for Client Side Rendering)
+  const [sidebarOpen, setSidebarOpen] = useState(typeof window !== 'undefined' ? window.innerWidth > 768 : false);
+  const location = useLocation();
 
   const handleLogout = async () => {
     await logout();
@@ -25,6 +28,56 @@ const Layout = ({ children }) => {
 
   const getDashboardPath = () => {
     return `/${userRole}`;
+  };
+
+  const getSidebarItems = (role) => {
+    switch (role) {
+      case 'student':
+        return [
+          { key: 'overview', label: 'Overview', icon: <FiBarChart size={20} /> },
+          { key: 'assignments', label: 'Assignments', icon: <FiClipboard size={20} /> },
+          { key: 'attendance', label: 'Attendance', icon: <FiCheckCircle size={20} /> },
+          { key: 'marks', label: 'Marks', icon: <FiUpload size={20} /> },
+          { key: 'timetable', label: 'Timetable', icon: <FiCalendar size={20} /> },
+          { key: 'announcements', label: 'Announcements', icon: <FiBell size={20} /> }
+        ];
+      case 'teacher':
+        return [
+          { key: 'overview', label: 'Overview', icon: <FiBarChart size={20} /> },
+          { key: 'attendance', label: 'Attendance', icon: <FiCheckCircle size={20} /> },
+          { key: 'assignments', label: 'Assignments', icon: <FiClipboard size={20} /> },
+          { key: 'marks', label: 'Marks', icon: <FiUpload size={20} /> },
+          { key: 'timetable', label: 'Timetable', icon: <FiCalendar size={20} /> }
+        ];
+      case 'admin':
+        return [
+          { key: 'overview', label: 'Overview', icon: <FiBarChart size={20} /> },
+          { key: 'users', label: 'Users', icon: <FiUsers size={20} /> },
+          { key: 'classes', label: 'Classes', icon: <FiBook size={20} /> },
+          { key: 'timetable', label: 'Timetable', icon: <FiCalendar size={20} /> },
+          { key: 'announcements', label: 'Announcements', icon: <FiBell size={20} /> }
+        ];
+      case 'parent':
+        return [
+          { key: 'overview', label: 'Overview', icon: <FiBarChart size={20} /> },
+          { key: 'attendance', label: 'Attendance', icon: <FiCheckCircle size={20} /> },
+          { key: 'marks', label: 'Marks', icon: <FiBook size={20} /> },
+          { key: 'announcements', label: 'Announcements', icon: <FiBell size={20} /> }
+        ];
+      // Add other roles as needed
+      default:
+        return [{ key: 'overview', label: 'Dashboard', icon: <FiHome size={20} /> }];
+    }
+  };
+
+  const menuItems = getSidebarItems(userRole);
+  const currentTab = new URLSearchParams(location.search).get('tab') || 'overview';
+
+  const handleLinkClick = () => {
+    // Only close on mobile
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
   };
 
   return (
@@ -70,6 +123,7 @@ const Layout = ({ children }) => {
             </div>
           </div>
           <div className="header-right">
+            <ThemeToggle />
             <button className="header-icon-btn" title="Notifications">
               <FiBell size={20} />
               <span className="notification-badge">3</span>
@@ -81,7 +135,7 @@ const Layout = ({ children }) => {
             </div>
             <button className="btn btn-secondary" onClick={handleLogout}>
               <FiLogOut size={18} />
-              Logout
+              <span className="hide-text-mobile">Logout</span>
             </button>
           </div>
         </div>
@@ -89,17 +143,21 @@ const Layout = ({ children }) => {
 
       <div className="layout-body">
         {/* Sidebar */}
-        <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
           <nav className="sidebar-nav">
-            <a href="/" className="nav-item">
-              <FiHome size={20} />
-              <span>Home</span>
-            </a>
-            <a href={getDashboardPath()} className="nav-item">
-              <FiHome size={20} />
-              <span>Dashboard</span>
-            </a>
-            {/* Additional nav items will be added by each dashboard */}
+
+
+            {menuItems.map((item) => (
+              <Link
+                key={item.key}
+                to={`${getDashboardPath()}?tab=${item.key}`}
+                className={`nav-item ${currentTab === item.key && location.pathname === getDashboardPath() ? 'active' : ''}`}
+                onClick={handleLinkClick}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            ))}
           </nav>
         </aside>
 
@@ -121,4 +179,3 @@ const Layout = ({ children }) => {
 };
 
 export default Layout;
-
